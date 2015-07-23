@@ -1,8 +1,17 @@
 {
-	"name": "ltbl2-d",
-	"description": "A minimal D application.",
-	"copyright": "Copyright © 2015, devin",
-	"authors": ["devin"],
-	"dependencies": {
-	}
+    "name": "Let There Be Light 2 - D",
+    "description": "A lighting framework written in D for DSFML. This is a translation of https://github.com/222464/LTBL2",
+    "copyright": "Copyright © 2015, Devin Ridgway",
+
+    "homepage": "https://github.com/luke5542/LTBL2-D",
+    "authors": ["luke5542"],
+    "license": "GPL-2.0",
+
+    "targetType": "library",
+    "targetPath": "bin\\",
+
+    "dependencies": {
+        "d-unit": "~master",
+        "dsfml:graphics": "~master"
+    }
 }
