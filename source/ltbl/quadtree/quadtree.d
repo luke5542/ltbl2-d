@@ -1,12 +1,12 @@
-package ltbl.quadtree.quadtree;
+module ltbl.quadtree.quadtree;
 
 // Base class for dynamic and static Quadtree types
 class Quadtree {
 
 protected:
-    std::unordered_set<QuadtreeOccupant*> mOutsideRoot;
+    std::unordered_set<QuadtreeOccupant*> _outsideRoot;
 
-    std::unique_ptr<QuadtreeNode> mRootNode;
+    std::unique_ptr<QuadtreeNode> _rootNode;
 
     // Called whenever something is removed, an action can be defined by derived classes
     // Defaults to doing nothing
@@ -59,31 +59,31 @@ public:
         m_maxLevels = other.m_maxLevels;
         m_oversizeMultiplier = other.m_oversizeMultiplier;
 
-        mOutsideRoot = other.mOutsideRoot;
+        _outsideRoot = other._outsideRoot;
 
-        if (other.mRootNode != nullptr) {
-            mRootNode.reset(new QuadtreeNode());
+        if (other._rootNode != nullptr) {
+            _rootNode.reset(new QuadtreeNode());
 
-            recursiveCopy(mRootNode.get(), other.mRootNode.get(), nullptr);
+            recursiveCopy(_rootNode.get(), other._rootNode.get(), nullptr);
         }
     }
 
     abstract void add(QuadtreeOccupant* oc);
 
     void pruneDeadReferences() {
-        for (std::unordered_set<QuadtreeOccupant*>::iterator it = mOutsideRoot.begin(); it != mOutsideRoot.end();)
+        for (std::unordered_set<QuadtreeOccupant*>::iterator it = _outsideRoot.begin(); it != _outsideRoot.end();)
         if ((*it) == nullptr)
             it++;
         else
-            it = mOutsideRoot.erase(it);
+            it = _outsideRoot.erase(it);
 
-        if (mRootNode != nullptr)
-            mRootNode.pruneDeadReferences();
+        if (_rootNode != nullptr)
+            _rootNode.pruneDeadReferences();
     }
 
     void queryRegion(std::vector<QuadtreeOccupant*> &result, const sf::FloatRect &region) {
         // Query outside root elements
-        for (std::unordered_set<QuadtreeOccupant*>::iterator it = mOutsideRoot.begin(); it != mOutsideRoot.end(); it++) {
+        for (std::unordered_set<QuadtreeOccupant*>::iterator it = _outsideRoot.begin(); it != _outsideRoot.end(); it++) {
             QuadtreeOccupant* oc = *it;
             sf::FloatRect r = oc.getAABB();
 
@@ -94,7 +94,7 @@ public:
 
         std::list<QuadtreeNode*> open;
 
-        open.push_back(mRootNode.get());
+        open.push_back(_rootNode.get());
 
         while (!open.empty()) {
             // Depth-first (results in less memory usage), remove objects from open list
@@ -122,7 +122,7 @@ public:
 
     void queryPoint(std::vector<QuadtreeOccupant*> &result, const sf::Vector2f &p) {
         // Query outside root elements
-        for (std::unordered_set<QuadtreeOccupant*>::iterator it = mOutsideRoot.begin(); it != mOutsideRoot.end(); it++) {
+        for (std::unordered_set<QuadtreeOccupant*>::iterator it = _outsideRoot.begin(); it != _outsideRoot.end(); it++) {
             QuadtreeOccupant* oc = *it;
 
             if (oc != nullptr && oc.getAABB().contains(p))
@@ -132,7 +132,7 @@ public:
 
         std::list<QuadtreeNode*> open;
 
-        open.push_back(mRootNode.get());
+        open.push_back(_rootNode.get());
 
         while (!open.empty()) {
             // Depth-first (results in less memory usage), remove objects from open list
@@ -159,7 +159,7 @@ public:
 
     void queryShape(std::vector<QuadtreeOccupant*> &result, const sf::ConvexShape &shape) {
         // Query outside root elements
-        for (std::unordered_set<QuadtreeOccupant*>::iterator it = mOutsideRoot.begin(); it != mOutsideRoot.end(); it++) {
+        for (std::unordered_set<QuadtreeOccupant*>::iterator it = _outsideRoot.begin(); it != _outsideRoot.end(); it++) {
             QuadtreeOccupant* oc = *it;
 
             if (oc != nullptr && shapeIntersection(shapeFromRect(oc.getAABB()), shape))
@@ -169,7 +169,7 @@ public:
 
         std::list<QuadtreeNode*> open;
 
-        open.push_back(mRootNode.get());
+        open.push_back(_rootNode.get());
 
         while (!open.empty()) {
             // Depth-first (results in less memory usage), remove objects from open list

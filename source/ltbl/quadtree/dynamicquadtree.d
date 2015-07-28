@@ -1,4 +1,4 @@
-package ltbl.quadtree.dynamicquadtree;
+module ltbl.quadtree.dynamicquadtree;
 
 class DynamicQuadtree : public Quadtree {
 
@@ -49,7 +49,7 @@ public:
     // Resizes Quadtree
     void trim();
 
-    bool created() const {
+    @property bool created() {
         return rootNode != null;
     }
 
@@ -99,11 +99,11 @@ private:
         Vector2f regionCenter = rectCenter(newRoot.region);
 
         // Create the children nodes
-        for(int x = 0; x < 2; x++)
+        for(int x = 0; x < 2; x++) {
             for(int y = 0; y < 2; y++) {
-                if(x == rX && y == rY)
+                if(x == rX && y == rY) {
                     newRoot.children[x + y * 2].reset(rootNode.release());
-                else {
+                } else {
                     Vector2f offset(x * halfRegionDims.x, y * halfRegionDims.y);
 
                     FloatRect childAABB = rectFromBounds(regionLowerBound + offset, regionCenter + offset);
@@ -119,6 +119,7 @@ private:
                     newRoot.children[x + y * 2].reset(new QuadtreeNode(childAABB, rootNode.level, newRoot, this));
                 }
             }
+        }
 
         newRoot.hasChildren = true;
         newRoot.numOccupantsBelow = rootNode.numOccupantsBelow;
