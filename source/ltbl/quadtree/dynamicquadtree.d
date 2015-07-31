@@ -1,10 +1,12 @@
 module ltbl.quadtree.dynamicquadtree;
 
-class DynamicQuadtree : public Quadtree {
+class DynamicQuadtree : Quadtree {
 
-public:
-    long minOutsideRoot;
-    long maxOutsideRoot;
+    public
+    {
+        long minOutsideRoot;
+        long maxOutsideRoot;
+    }
 
     DynamicQuadtree()
     {
@@ -18,15 +20,8 @@ public:
         create(rootRegion);
     }
 
-    void operator=(const DynamicQuadtree &other) {
-        Quadtree::operator=(other);
-
-        minOutsideRoot = other.minOutsideRoot;
-        maxOutsideRoot = other.maxOutsideRoot;
-    }
-
     void create(const ref FloatRect rootRegion) {
-        rootNode = new QuadtreeNode(rootRegion, 0, null, this);
+        _rootNode = new QuadtreeNode(rootRegion, 0, null, this);
     }
 
     // Inherited from Quadtree
@@ -34,37 +29,35 @@ public:
         assert(created());
 
         // If the occupant fits in the root node
-        if (rectContains(rootNode.getRegion(), oc.getAABB()))
-            rootNode.add(oc);
+        if (rectContains(_rootNode.getRegion(), oc.getAABB()))
+            _rootNode.add(oc);
         else
-            outsideRoot.insert(oc);
+            _outsideRoot.insert(oc);
 
         setQuadtree(oc);
     }
 
     void clear() {
-        rootNode.reset();
+        _rootNode.reset();
     }
 
-    // Resizes Quadtree
-    void trim();
-
     @property bool created() {
-        return rootNode != null;
+        return _rootNode != null;
     }
 
     const tRect getRootRegion() {
-        return rootNode.getRegion();
+        return _rootNode.getRegion();
     }
 
+    // Resizes Quadtree
     void trim() {
-        if(rootNode.get() == null)
+        if(_rootNode.get() == null)
             return;
 
         // Check if should grow
-        if(outsideRoot.size() > maxOutsideRoot)
+        if(_outsideRoot.size() > maxOutsideRoot)
             expand();
-        else if(outsideRoot.size() < minOutsideRoot && rootNode.hasChildren)
+        else if(_outsideRoot.size() < minOutsideRoot && _rootNode.hasChildren)
             contract();
     }
 
@@ -74,10 +67,10 @@ private:
         // Find direction with most occupants
         Vector2f averageDir(0.0f, 0.0f);
 
-        for (std::unordered_set<QuadtreeOccupant*>::iterator it = outsideRoot.begin(); it != outsideRoot.end(); it++)
-            averageDir += vectorNormalize(rectCenter((*it).getAABB()) - rectCenter(rootNode.getRegion()));
+        for (std::unordered_set<QuadtreeOccupant*>::iterator it = _outsideRoot.begin(); it != _outsideRoot.end(); it++)
+            averageDir += vectorNormalize(rectCenter((*it).getAABB()) - rectCenter(_rootNode.getRegion()));
 
-        Vector2f centerOffsetDist(rectHalfDims(rootNode.getRegion()) / oversizeMultiplier);
+        Vector2f centerOffsetDist(rectHalfDims(_rootNode.getRegion()) / oversizeMultiplier);
 
         Vector2f centerOffset((averageDir.x > 0.0f ? 1.0f : -1.0f) * centerOffsetDist.x, //;
                                 (averageDir.y > 0.0f ? 1.0f : -1.0f) * centerOffsetDist.y);
@@ -88,9 +81,9 @@ private:
 
         FloatRect newRootAABB = rectFromBounds(Vector2f(0.0f, 0.0f), centerOffsetDist * 4.0f);
 
-        newRootAABB = rectRecenter(newRootAABB, centerOffset + rectCenter(rootNode.getRegion()));
+        newRootAABB = rectRecenter(newRootAABB, centerOffset + rectCenter(_rootNode.getRegion()));
 
-        QuadtreeNode newRoot = new QuadtreeNode(newRootAABB,  rootNode.level + 1, null, this);
+        QuadtreeNode newRoot = new QuadtreeNode(newRootAABB,  _rootNode.level + 1, null, this);
 
         // ----------------------- Manual Children Creation for New Root -------------------------
 
@@ -102,7 +95,7 @@ private:
         for(int x = 0; x < 2; x++) {
             for(int y = 0; y < 2; y++) {
                 if(x == rX && y == rY) {
-                    newRoot.children[x + y * 2].reset(rootNode.release());
+                    newRoot.children[x + y * 2].reset(_rootNode.release());
                 } else {
                     Vector2f offset(x * halfRegionDims.x, y * halfRegionDims.y);
 
@@ -116,38 +109,38 @@ private:
 
                     childAABB = rectRecenter(childAABB, center);
 
-                    newRoot.children[x + y * 2].reset(new QuadtreeNode(childAABB, rootNode.level, newRoot, this));
+                    newRoot.children[x + y * 2].reset(new QuadtreeNode(childAABB, _rootNode.level, newRoot, this));
                 }
             }
         }
 
         newRoot.hasChildren = true;
-        newRoot.numOccupantsBelow = rootNode.numOccupantsBelow;
-        rootNode.parent = newRoot;
+        newRoot.numOccupantsBelow = _rootNode.numOccupantsBelow;
+        _rootNode.parent = newRoot;
 
         // Transfer ownership
-        rootNode.release();
-        rootNode.reset(newRoot);
+        _rootNode.release();
+        _rootNode.reset(newRoot);
 
         // ----------------------- Try to Add Previously Outside Root -------------------------
 
         // Make copy so don't try to re-add ones just added
-        std::unordered_set<QuadtreeOccupant*> outsideRootCopy(outsideRoot);
-        outsideRoot.clear();
+        QuadtreeOccupant[] outsideRootCopy = _outsideRoot.dup;
+        _outsideRoot.length = 0;
 
-        for (std::unordered_set<QuadtreeOccupant*>::iterator it = outsideRootCopy.begin(); it != outsideRootCopy.end(); it++)
+        for (occupant; outsideRootCopy)
             add(*it);
     }
 
     void contract() {
-        assert(rootNode.hasChildren);
+        assert(_rootNode.hasChildren);
 
         // Find child with the most occupants and shrink to that
         int maxIndex = 0;
 
         for (int i = 1; i < 4; i++)
-        if (rootNode.children[i].getNumOccupantsBelow() >
-            rootNode.children[maxIndex].getNumOccupantsBelow())
+        if (_rootNode.children[i].getNumOccupantsBelow() >
+            _rootNode.children[maxIndex].getNumOccupantsBelow())
             maxIndex = i;
 
         // Reorganize
@@ -155,17 +148,17 @@ private:
             if (i == maxIndex)
                 continue;
 
-            rootNode.children[i].removeForDeletion(outsideRoot);
+            _rootNode.children[i].removeForDeletion(_outsideRoot);
         }
 
-        QuadtreeNode* newRoot = rootNode.children[maxIndex].release();
+        QuadtreeNode* newRoot = _rootNode.children[maxIndex].release();
 
-        rootNode.destroyChildren();
+        _rootNode.destroyChildren();
 
-        rootNode.removeForDeletion(outsideRoot);
+        _rootNode.removeForDeletion(_outsideRoot);
 
-        rootNode.reset(newRoot);
+        _rootNode.reset(newRoot);
 
-        rootNode.parent = null;
+        _rootNode.parent = null;
     }
 }

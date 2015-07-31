@@ -6,7 +6,7 @@ import ltbl.quadtree.quadtree;
 class QuadtreeNode
 {
 
-    private
+    package
     {
         QuadtreeNode _parent;
         Quadtree _quadtree;
@@ -250,7 +250,7 @@ private:
         }
     }
 
-    void update(QuadtreeOccupant* oc) {
+    void update(QuadtreeOccupant oc) {
         if (oc is null)
             return;
 
@@ -286,7 +286,7 @@ private:
             node.add(oc);
     }
 
-    void remove(QuadtreeOccupant* oc) {
+    void remove(QuadtreeOccupant oc) {
         assert(!_occupants.empty());
 
         // Remove from node
@@ -311,7 +311,7 @@ private:
         }
     }
 
-    void removeForDeletion(std::unordered_set<QuadtreeOccupant*> &occupants) {
+    void removeForDeletion(ref QuadtreeOccupant[] occupants) {
         // Iteratively parse subnodes in order to collect all occupants below this node
         DList!(QuadtreeNode) open;
 
