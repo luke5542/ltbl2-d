@@ -20,6 +20,7 @@ class LightPointEmission : QuadtreeOccupant {
 
     LightPointEmission()
     {
+        emissionSprite = new Sprite();
         localCastCenter = Vector2f(0.0f, 0.0f);
         sourceRadius = 8.0f;
         shadowOverExtendMultiplier = 1.4f;
@@ -219,7 +220,7 @@ class LightPointEmission : QuadtreeOccupant {
         }
 
         for (int i = 0; i < shapes.size(); i++) {
-            LightShape* lightShape = static_cast<LightShape*>(shapes[i]);
+            LightShape lightShape = shapes[i];
 
             if (lightShape.renderLightOverShape) {
                 lightShape.shape.setFillColor(Color::White);
