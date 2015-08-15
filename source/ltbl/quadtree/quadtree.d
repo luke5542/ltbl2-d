@@ -26,18 +26,19 @@ class Quadtree {
         oversizeMultiplier = 1.0f;
     }
 
-    Quadtree(in Quadtree other) {
-        minNumNodeOccupants = other.minNumNodeOccupants;
-        maxNumNodeOccupants = other.maxNumNodeOccupants;
-        maxLevels = other.maxLevels;
-        oversizeMultiplier = other.oversizeMultiplier;
+    @property auto dup() {
+        auto newTree = new Quadtree();
+        newTree.minNumNodeOccupants = minNumNodeOccupants;
+        newTree.maxNumNodeOccupants = maxNumNodeOccupants;
+        newTree.maxLevels = maxLevels;
+        newTree.oversizeMultiplier = oversizeMultiplier;
 
-        _outsideRoot = other._outsideRoot;
+        newTree._outsideRoot = _outsideRoot;
 
-        if (other._rootNode !is null) {
-            _rootNode.reset(new QuadtreeNode());
+        if (_rootNode !is null) {
+            newTree._rootNode.reset(new QuadtreeNode());
 
-            recursiveCopy(_rootNode.get(), other._rootNode.get(), null);
+            recursiveCopy(newTree._rootNode.get(), _rootNode.get(), null);
         }
     }
 
@@ -56,7 +57,7 @@ class Quadtree {
             _rootNode.pruneDeadReferences();
     }*/
 
-    void queryRegion(QuadtreeOccupant[] result, const ref FloatRect region) {
+    void queryRegion(QuadtreeOccupant[] result, ref const(FloatRect) region) {
         // Query outside root elements
         for (occupant; _outsideRoot) {
             FloatRect r = occupant.getAABB();
@@ -102,7 +103,7 @@ class Quadtree {
     }
 
 
-    void queryPoint(QuadtreeOccupant[] result, const ref Vector2f p) {
+    void queryPoint(QuadtreeOccupant[] result, ref const(Vector2f) p) {
         // Query outside root elements
         for (occupant; _outsideRoot) {
             if (oc !is null && oc.getAABB().contains(p))
@@ -141,7 +142,7 @@ class Quadtree {
         }
     }
 
-    void queryShape(QuadtreeOccupant[] result, const ref ConvexShape shape) {
+    void queryShape(QuadtreeOccupant[] result, ref const(ConvexShape) shape) {
         // Query outside root elements
         for (occupant; _outsideRoot) {
             if (oc != null && shapeIntersection(shapeFromRect(oc.getAABB()), shape))

@@ -24,7 +24,7 @@ class QuadtreeNode
         _numOccupantsBelow = 0;
     }
 
-    QuadtreeNode(const ref FloatRect region, int level, QuadtreeNode parent, Quadtree quadtree)
+    QuadtreeNode(ref const(FloatRect) region, int level, QuadtreeNode parent, Quadtree quadtree)
     {
         _hasChildren = false;
         _region = region;
@@ -34,7 +34,7 @@ class QuadtreeNode
         _numOccupantsBelow = 0;
     }
 
-    void create(const ref FloatRect region, int level, QuadtreeNode parent, Quadtree quadtree)
+    void create(ref const(FloatRect) region, int level, QuadtreeNode parent, Quadtree quadtree)
     {
         _hasChildren = false;
 

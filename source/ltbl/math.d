@@ -107,12 +107,12 @@ FloatRect rectExpand(in ref FloatRect rect, in ref Vector2f point) {
 }
 
 bool shapeIntersection(in ref ConvexShape left, in ref ConvexShape right) {
-    Vector2f[] transformedLeft(left.getPointCount());
+    Vector2f[] transformedLeft = new Vector2f[left.getPointCount()];
 
     for (int i = 0; i < left.getPointCount(); i++)
         transformedLeft[i] = left.getTransform().transformPoint(left.getPoint(i));
 
-    Vector2f[] transformedRight(right.getPointCount());
+    Vector2f[] transformedRight = new Vector2f[right.getPointCount()];
 
     for (int i = 0; i < right.getPointCount(); i++)
         transformedRight[i] = right.getTransform().transformPoint(right.getPoint(i));
@@ -200,7 +200,7 @@ ConvexShape shapeFixWinding(in ref ConvexShape shape) {
         center += shape.getPoint(i);
     }
 
-    center /= (float) shape.getPointCount();
+    center /= cast(float) shape.getPointCount();
 
     // Fix winding
     Vector2f lastPoint = points.front();
@@ -213,7 +213,7 @@ ConvexShape shapeFixWinding(in ref ConvexShape shape) {
         Vector2f centerToLastPoint = lastPoint - center;
         Vector2f lastPointDirection = vectorNormalize(Vector2f(-centerToLastPoint.y, centerToLastPoint.x));
 
-        float maxD = -999999.0f;
+        float maxD = float.min;
 
         Vector2f nextPoint;
 
