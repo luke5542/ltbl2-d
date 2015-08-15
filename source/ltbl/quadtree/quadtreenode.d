@@ -44,7 +44,7 @@ class QuadtreeNode
         _quadtree = quadtree;
     }
 
-    const Quadtree getTree()
+    @property const(Quadtree) quadtree()
     {
         return _quadtree;
     }
@@ -78,12 +78,12 @@ class QuadtreeNode
         addToThisLevel(oc);
     }
 
-    const FloatRect getRegion()
+    @property const(FloatRect) region()
     {
         return _region;
     }
 
-    void getAllOccupantsBelow(QuadtreeOccupant[] occupants)
+    void getAllOccupantsBelow(ref QuadtreeOccupant[] occupants)
     {
         // Iteratively parse subnodes in order to collect all occupants below this node
         DList!(QuadtreeNode) open;
@@ -121,10 +121,8 @@ class QuadtreeNode
         //use http://forum.dlang.org/post/mailman.564.1336706406.24740.digitalmars-d-learn@puremagic.com
         foreach (occupant; _occupants)
         {
-            if ((*it) == nullptr)
-                it++;
-            else
-                it = _occupants.erase(it);
+            if (occupant is null)
+                _occupants.remove(occupant);
         }
 
         if (_hasChildren)
@@ -208,7 +206,7 @@ private:
             // If the node has children, add them to the open list
             if (currentNode._hasChildren)
                 for (int i = 0; i < 4; i++)
-                    open.removeBack(currentNode._children[i].get());
+                    open.insertBack(currentNode._children[i].get());
         }
     }
 
@@ -225,7 +223,7 @@ private:
         {
             for (int y = 0; y < 2; y++)
             {
-                Vector2f offset(x * halfRegionDims.x, y * halfRegionDims.y);
+                Vector2f offset = Vector2f(x * halfRegionDims.x, y * halfRegionDims.y);
 
                 FloatRect childAABB = rectFromBounds(regionLowerBound + offset, regionCenter + offset);
 
@@ -282,8 +280,11 @@ private:
 
             oc._quadtreeNode = null;
         }
-        else // Add to the selected node
+        else
+        {
+            // Add to the selected node
             node.add(oc);
+        }
     }
 
     void remove(QuadtreeOccupant oc) {
