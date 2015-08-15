@@ -8,19 +8,19 @@ class DynamicQuadtree : Quadtree {
         long maxOutsideRoot;
     }
 
-    DynamicQuadtree()
+    this()
     {
         minOutsideRoot = 1;
         maxOutsideRoot = 8;
     }
 
-    DynamicQuadtree(const ref FloatRect rootRegion)
+    this(ref const(FloatRect) rootRegion)
     {
         this();
         create(rootRegion);
     }
 
-    void create(const ref FloatRect rootRegion) {
+    void create(ref const(FloatRect) rootRegion) {
         _rootNode = new QuadtreeNode(rootRegion, 0, null, this);
     }
 
@@ -41,11 +41,11 @@ class DynamicQuadtree : Quadtree {
         _rootNode.reset();
     }
 
-    @property bool created() {
+    @property bool created() const {
         return _rootNode != null;
     }
 
-    const tRect getRootRegion() {
+    @property const(Rect) rootRegion() const {
         return _rootNode.getRegion();
     }
 

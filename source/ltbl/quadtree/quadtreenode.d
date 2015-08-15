@@ -5,7 +5,6 @@ import ltbl.quadtree.quadtree;
 
 class QuadtreeNode
 {
-
     package
     {
         QuadtreeNode _parent;
@@ -18,13 +17,13 @@ class QuadtreeNode
         int _numOccupantsBelow;
     }
 
-    QuadtreeNode()
+    this()
     {
         _hasChildren = false;
         _numOccupantsBelow = 0;
     }
 
-    QuadtreeNode(ref const(FloatRect) region, int level, QuadtreeNode parent, Quadtree quadtree)
+    this(ref const(FloatRect) region, int level, QuadtreeNode parent, Quadtree quadtree)
     {
         _hasChildren = false;
         _region = region;

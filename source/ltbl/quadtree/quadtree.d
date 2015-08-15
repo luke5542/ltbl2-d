@@ -1,8 +1,8 @@
 module ltbl._quadtree._quadtree;
 
 // Base class for dynamic and static Quadtree types
-class Quadtree {
-
+class Quadtree
+{
     protected
     {
         QuadtreeOccupant[] _outsideRoot;
@@ -18,7 +18,7 @@ class Quadtree {
         float oversizeMultiplier;
     }
 
-    Quadtree()
+    this()
     {
         minNumNodeOccupants = 3;
         maxNumNodeOccupants = 6;

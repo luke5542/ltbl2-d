@@ -11,15 +11,13 @@ class QuadtreeOccupant
         Quadtree _quadtree;
     }
 
-    QuadtreeOccupant(){}
-
     void quadtreeUpdate() {
-        if (_quadtreeNode != nullptr)
+        if (_quadtreeNode !is null)
             _quadtreeNode.update(this);
     }
 
     void quadtreeRemove() {
-        if (_quadtreeNode != nullptr)
+        if (_quadtreeNode !is null)
             _quadtreeNode.remove(this);
     }
 

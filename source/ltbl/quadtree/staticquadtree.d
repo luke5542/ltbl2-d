@@ -4,13 +4,15 @@ import ltbl.quadtree.quadtree;
 
 class StaticQuadtree : Quadtree
 {
-    StaticQuadtree() {}
+    this() {
+        super();
+    }
 
-    StaticQuadtree(const ref FloatRect rootRegion) {
+    this(ref const(FloatRect) rootRegion) {
         _rootNode.reset(new QuadtreeNode(rootRegion, 0, null, this));
     }
 
-    void create(const ref FloatRect rootRegion) {
+    void create(ref const(FloatRect) rootRegion) {
         _rootNode.reset(new QuadtreeNode(rootRegion, 0, null, this));
     }
 
@@ -31,11 +33,11 @@ class StaticQuadtree : Quadtree
         _rootNode.reset();
     }
 
-    const FloatRect getRootRegion() {
+    @property const(FloatRect) rootRegion() const {
         return _rootNode.getRegion();
     }
 
-    bool created() const {
+    @property bool created() const {
         return _rootNode !is null;
     }
 }
