@@ -65,21 +65,21 @@ private:
 
     void expand() {
         // Find direction with most occupants
-        Vector2f averageDir(0.0f, 0.0f);
+        Vector2f averageDir(0.0, 0.0);
 
-        for (std::unordered_set<QuadtreeOccupant*>::iterator it = _outsideRoot.begin(); it != _outsideRoot.end(); it++)
-            averageDir += vectorNormalize(rectCenter((*it).getAABB()) - rectCenter(_rootNode.getRegion()));
+        for(occupant; _outsideRoot)
+            averageDir += vectorNormalize(rectCenter(occupant.getAABB()) - rectCenter(_rootNode.getRegion()));
 
         Vector2f centerOffsetDist(rectHalfDims(_rootNode.getRegion()) / oversizeMultiplier);
 
-        Vector2f centerOffset((averageDir.x > 0.0f ? 1.0f : -1.0f) * centerOffsetDist.x, //;
-                                (averageDir.y > 0.0f ? 1.0f : -1.0f) * centerOffsetDist.y);
+        Vector2f centerOffset = Vector2f((averageDir.x > 0.0 ? 1.0 : -1.0) * centerOffsetDist.x,
+                                (averageDir.y > 0.0 ? 1.0 : -1.0) * centerOffsetDist.y);
 
         // Child node position of current root node
-        int rX = centerOffset.x > 0.0f ? 0 : 1;
-        int rY = centerOffset.y > 0.0f ? 0 : 1;
+        int rX = centerOffset.x > 0.0 ? 0 : 1;
+        int rY = centerOffset.y > 0.0 ? 0 : 1;
 
-        FloatRect newRootAABB = rectFromBounds(Vector2f(0.0f, 0.0f), centerOffsetDist * 4.0f);
+        FloatRect newRootAABB = rectFromBounds(Vector2f(0.0, 0.0), centerOffsetDist * 4.0);
 
         newRootAABB = rectRecenter(newRootAABB, centerOffset + rectCenter(_rootNode.getRegion()));
 
@@ -129,7 +129,7 @@ private:
         _outsideRoot.length = 0;
 
         for (occupant; outsideRootCopy)
-            add(*it);
+            add(occupant);
     }
 
     void contract() {
@@ -138,10 +138,11 @@ private:
         // Find child with the most occupants and shrink to that
         int maxIndex = 0;
 
-        for (int i = 1; i < 4; i++)
-        if (_rootNode.children[i].getNumOccupantsBelow() >
-            _rootNode.children[maxIndex].getNumOccupantsBelow())
-            maxIndex = i;
+        for (int i = 1; i < 4; i++) {
+            if (_rootNode.children[i].getNumOccupantsBelow() >
+                _rootNode.children[maxIndex].getNumOccupantsBelow())
+                maxIndex = i;
+        }
 
         // Reorganize
         for (int i = 0; i < 4; i++) {
@@ -151,7 +152,8 @@ private:
             _rootNode.children[i].removeForDeletion(_outsideRoot);
         }
 
-        QuadtreeNode* newRoot = _rootNode.children[maxIndex].release();
+        QuadtreeNode newRoot = _rootNode._children[maxIndex];
+        _rootNode._children[maxIndex] = null;
 
         _rootNode.destroyChildren();
 
