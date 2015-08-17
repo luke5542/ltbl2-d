@@ -30,28 +30,28 @@ class LightPointEmission : QuadtreeOccupant {
         return emissionSprite.getGlobalBounds();
     }
 
-    void render(const ref View view, ref RenderTexture lightTempTexture,
+    void render(ref const(View) view, ref RenderTexture lightTempTexture,
                 ref RenderTexture emissionTempTexture,
                 ref RenderTexture antumbraTempTexture,
-                const ref QuadtreeOccupant[] shapes,
+                ref const(QuadtreeOccupant[]) shapes,
                 ref Shader unshadowShader, ref Shader lightOverShapeShader)
     {
-        LightSystem::clear(emissionTempTexture, Color::Black);
+        LightSystem.clear(emissionTempTexture, Color.Black);
 
         emissionTempTexture.setView(view);
         emissionTempTexture.draw(emissionSprite);
         emissionTempTexture.display();
 
-        LightSystem::clear(lightTempTexture, Color::Black);
+        LightSystem.clear(lightTempTexture, Color.Black);
 
         lightTempTexture.setView(view);
 
         lightTempTexture.draw(emissionSprite);
 
         Transform t;
-        t.translate(emissionSprite.getPosition());
+        t.translate(emissionSprite.getPosition().x, emissionSprite.getPosition().y);
         t.rotate(emissionSprite.getRotation());
-        t.scale(emissionSprite.getScale());
+        t.scale(emissionSprite.getScale().x, emissionSprite.getScale().y);
 
         Vector2f castCenter = t.transformPoint(localCastCenter);
 

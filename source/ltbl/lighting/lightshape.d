@@ -15,7 +15,7 @@ class LightShape : QuadtreeOccupant {
         _renderLightOverShape = true;
     }
 
-    FloatRect getAABB() {
+    FloatRect getAABB() const {
         return _shape.getGlobalBounds();
     }
 }
