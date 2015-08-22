@@ -14,7 +14,7 @@ class LightDirectionEmission {
         float sourceDistance;
     }
 
-    LightDirectionEmission()
+    this()
     {
         emissionSprite = new Sprite();
         castDirection = Vector2f(0.0f, 1.0f);

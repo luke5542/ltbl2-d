@@ -1,11 +1,12 @@
 module ltbl.lighting.lightsystem;
 
-import ltbl.quadtree.dynamicquadtree.h;
+import ltbl.quadtree.dynamicquadtree;
 
-import ltbl.lighting.lightpointemission.h;
-import ltbl.lighting.lightdirectionemission.h;
-import ltbl.lighting.lightshape.h;
+import ltbl.lighting.lightpointemission;
+import ltbl.lighting.lightdirectionemission;
+import ltbl.lighting.lightshape;
 
+import dsfml.graphics;
 
 struct Penumbra {
     Vector2f source;
@@ -41,7 +42,7 @@ class LightSystem {
         LightShape[] _lightShapes;
     }
 
-    LightSystem()
+    this()
     {
         directionEmissionRange = 10_000.0;
         directionEmissionRadiusMultiplier = 1.1;
@@ -110,7 +111,7 @@ class LightSystem {
             _compositionTexture.draw(sprite, compoRenderStates);
         }
 
-        for (emission; _directionEmissionLights) {
+        foreach(emission; _directionEmissionLights) {
             LightDirectionEmission directionEmissionLight = emission.get();
 
             FloatRect centeredViewBounds = rectRecenter(viewBounds, Vector2f(0.0f, 0.0f));
@@ -256,7 +257,7 @@ private:
             {
                 Vector2f sourceToPoint = nextPoint - sourceCenter;
 
-                Vector2f perpendicularOffset(-sourceToPoint.y, sourceToPoint.x);
+                Vector2f perpendicularOffset = Vector2f(-sourceToPoint.y, sourceToPoint.x);
 
                 perpendicularOffset = vectorNormalize(perpendicularOffset);
                 perpendicularOffset *= sourceRadius;
@@ -320,7 +321,7 @@ private:
 
             Vector2f sourceToPoint = point - sourceCenter;
 
-            Vector2f perpendicularOffset(-sourceToPoint.y, sourceToPoint.x);
+            Vector2f perpendicularOffset = Vector2f(-sourceToPoint.y, sourceToPoint.x);
 
             perpendicularOffset = vectorNormalize(perpendicularOffset);
             perpendicularOffset *= sourceRadius;
@@ -649,7 +650,7 @@ private:
 
             Vector2f point = shape.getTransform().transformPoint(shape.getPoint(penumbraIndex));
 
-            Vector2f perpendicularOffset(-sourceDirection.y, sourceDirection.x);
+            Vector2f perpendicularOffset = Vector2f(-sourceDirection.y, sourceDirection.x);
 
             perpendicularOffset = vectorNormalize(perpendicularOffset);
             perpendicularOffset *= sourceRadius;

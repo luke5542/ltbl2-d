@@ -1,4 +1,9 @@
-module ltbl._quadtree._quadtree;
+module ltbl.quadtree.quadtree;
+
+import ltbl.quadtree.quadtreeoccupant;
+import ltbl.quadtree.quadtreenode;
+
+import dsfml.graphics;
 
 // Base class for dynamic and static Quadtree types
 class Quadtree
@@ -57,9 +62,11 @@ class Quadtree
             _rootNode.pruneDeadReferences();
     }*/
 
-    void queryRegion(QuadtreeOccupant[] result, ref const(FloatRect) region) {
+    void queryRegion(QuadtreeOccupant[] result, ref const(FloatRect) region)
+    {
         // Query outside root elements
-        for (occupant; _outsideRoot) {
+        foreach(occupant; _outsideRoot)
+        {
             FloatRect r = occupant.getAABB();
 
             if (oc != null && region.intersects(oc.getAABB()))
@@ -73,13 +80,16 @@ class Quadtree
 
         open.insertBack(_rootNode.get());
 
-        while (!open.empty()) {
+        while (!open.empty())
+        {
             // Depth-first (results in less memory usage), remove objects from open list
             QuadtreeNode current = open.back();
             open.removeBack();
 
-            if (region.intersects(current._region)) {
-                for (occupant; current._occupants) {
+            if (region.intersects(current._region))
+            {
+                foreach(occupant; current._occupants)
+                {
                     if (oc != null && region.intersects(oc.getAABB()))
                     {
                         // Visible, add to list
@@ -105,7 +115,8 @@ class Quadtree
 
     void queryPoint(QuadtreeOccupant[] result, ref const(Vector2f) p) {
         // Query outside root elements
-        for (occupant; _outsideRoot) {
+        foreach(occupant; _outsideRoot)
+        {
             if (oc !is null && oc.getAABB().contains(p))
                 // Intersects, add to list
                 result.insertBack(oc);
@@ -115,13 +126,16 @@ class Quadtree
 
         open.insertBack(_rootNode.get());
 
-        while (!open.empty()) {
+        while (!open.empty())
+        {
             // Depth-first (results in less memory usage), remove objects from open list
             QuadtreeNode current = open.back();
             open.removeBack();
 
-            if (current._region.contains(p)) {
-                for (qccupant; current._occupants) {
+            if (current._region.contains(p))
+            {
+                foreach(qccupant; current._occupants)
+                {
                     if (oc != null && oc.getAABB().contains(p))
                         // Visible, add to list
                         result.insertBack(oc);
@@ -130,7 +144,7 @@ class Quadtree
                 // Add children to open list if they intersect the region
                 if (current._hasChildren)
                 {
-                    for (int i = 0; i < 4; i++)
+                    for(int i = 0; i < 4; i++)
                     {
                         if (current._children[i].getNumOccupantsBelow() != 0)
                         {
@@ -142,9 +156,11 @@ class Quadtree
         }
     }
 
-    void queryShape(QuadtreeOccupant[] result, ref const(ConvexShape) shape) {
+    void queryShape(QuadtreeOccupant[] result, ref const(ConvexShape) shape)
+    {
         // Query outside root elements
-        for (occupant; _outsideRoot) {
+        foreach(occupant; _outsideRoot)
+        {
             if (oc != null && shapeIntersection(shapeFromRect(oc.getAABB()), shape))
                 // Intersects, add to list
                 result.insertBack(oc);
@@ -154,13 +170,15 @@ class Quadtree
 
         open.insertBack(_rootNode.get());
 
-        while (!open.empty()) {
+        while (!open.empty())
+        {
             // Depth-first (results in less memory usage), remove objects from open list
             QuadtreeNode current = open.back();
             open.removeBack();
 
-            if (shapeIntersection(shapeFromRect(current._region), shape)) {
-                for (occupant; current._occupants) {
+            if (shapeIntersection(shapeFromRect(current._region), shape))
+            {
+                foreach(occupant; current._occupants) {
                     ConvexShape r = shapeFromRect(oc.getAABB());
 
                     if (oc != null && shapeIntersection(shapeFromRect(oc.getAABB()), shape))

@@ -234,7 +234,7 @@ ConvexShape shapeFixWinding(in ref ConvexShape shape) {
         points.remove(nextPoint);
     }
 
-    ConvexShape fixedShape(shape.getPointCount());
+    ConvexShape fixedShape = new ConvexShape(shape.getPointCount());
 
     for (int i = 0; i < shape.getPointCount(); i++)
         fixedShape.setPoint(i, fixedPoints[i]);

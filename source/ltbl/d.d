@@ -18,6 +18,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 module ltbl.d;
 
-public import ltbl.math;
+public import math;
 //public import ltbl.lighting;
 //public import ltbl.quadtree;

@@ -3,6 +3,8 @@ module ltbl.quadtree.quadtreenode;
 import ltbl.quadtree.quadtreeoccupant;
 import ltbl.quadtree.quadtree;
 
+import dsfml.graphics;
+
 class QuadtreeNode
 {
     package
@@ -77,7 +79,7 @@ class QuadtreeNode
         addToThisLevel(oc);
     }
 
-    @property const(FloatRect) region()
+    @property const(FloatRect) region() const
     {
         return _region;
     }

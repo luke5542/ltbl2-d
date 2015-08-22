@@ -3,6 +3,8 @@ module ltbl.quadtree.quadtreeoccupant;
 import ltbl.quadtree.quadtree;
 import ltbl.quadtree.quadtreenode;
 
+import dsfml.graphics;
+
 class QuadtreeOccupant
 {
     package

@@ -2,6 +2,8 @@ module ltbl.lighting.lightshape;
 
 import ltbl.quadtree.quadtreeoccupant;
 
+import dsfml.graphics;
+
 class LightShape : QuadtreeOccupant {
 
     public
@@ -10,12 +12,12 @@ class LightShape : QuadtreeOccupant {
         ConvexShape shape;
     }
 
-    LightShape()
+    this()
     {
         _renderLightOverShape = true;
     }
 
-    FloatRect getAABB() const {
+    override FloatRect getAABB() const {
         return _shape.getGlobalBounds();
     }
 }

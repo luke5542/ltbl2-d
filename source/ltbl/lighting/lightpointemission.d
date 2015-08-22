@@ -2,6 +2,8 @@ module ltbl.lighting.lightpointemission;
 
 import ltbl.quadtree.quadtreeoccupant;
 
+import dsfml.graphics;
+
 private struct OuterEdges {
     int[] outerBoundaryIndices;
     Vector2f outerBoundaryVectors;
@@ -18,7 +20,7 @@ class LightPointEmission : QuadtreeOccupant {
         float shadowOverExtendMultiplier;
     }
 
-    LightPointEmission()
+    this()
     {
         emissionSprite = new Sprite();
         localCastCenter = Vector2f(0.0f, 0.0f);
@@ -26,7 +28,7 @@ class LightPointEmission : QuadtreeOccupant {
         shadowOverExtendMultiplier = 1.4f;
     }
 
-    FloatRect getAABB() const {
+    override FloatRect getAABB() const {
         return emissionSprite.getGlobalBounds();
     }
 

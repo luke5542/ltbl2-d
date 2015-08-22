@@ -1,5 +1,10 @@
 module ltbl.quadtree.dynamicquadtree;
 
+import ltbl.quadtree.quadtree;
+import ltbl.quadtree.quadtreeoccupant;
+
+import dsfml.graphics;
+
 class DynamicQuadtree : Quadtree {
 
     public
@@ -25,7 +30,7 @@ class DynamicQuadtree : Quadtree {
     }
 
     // Inherited from Quadtree
-    void add(ref QuadtreeOccupant oc) {
+    override void add(ref QuadtreeOccupant oc) {
         assert(created());
 
         // If the occupant fits in the root node
@@ -37,20 +42,24 @@ class DynamicQuadtree : Quadtree {
         setQuadtree(oc);
     }
 
-    void clear() {
+    void clear()
+    {
         _rootNode.reset();
     }
 
-    @property bool created() const {
+    @property bool created() const
+    {
         return _rootNode != null;
     }
 
-    @property const(Rect) rootRegion() const {
-        return _rootNode.getRegion();
+    @property const(FloatRect) rootRegion() const
+    {
+        return _rootNode.region;
     }
 
     // Resizes Quadtree
-    void trim() {
+    void trim()
+    {
         if(_rootNode.get() == null)
             return;
 
@@ -65,12 +74,12 @@ private:
 
     void expand() {
         // Find direction with most occupants
-        Vector2f averageDir(0.0, 0.0);
+        Vector2f averageDir = Vector2f(0.0, 0.0);
 
-        for(occupant; _outsideRoot)
+        foreach(occupant; _outsideRoot)
             averageDir += vectorNormalize(rectCenter(occupant.getAABB()) - rectCenter(_rootNode.getRegion()));
 
-        Vector2f centerOffsetDist(rectHalfDims(_rootNode.getRegion()) / oversizeMultiplier);
+        Vector2f centerOffsetDist = Vector2f(rectHalfDims(_rootNode.getRegion()) / oversizeMultiplier);
 
         Vector2f centerOffset = Vector2f((averageDir.x > 0.0 ? 1.0 : -1.0) * centerOffsetDist.x,
                                 (averageDir.y > 0.0 ? 1.0 : -1.0) * centerOffsetDist.y);
@@ -97,7 +106,7 @@ private:
                 if(x == rX && y == rY) {
                     newRoot.children[x + y * 2].reset(_rootNode.release());
                 } else {
-                    Vector2f offset(x * halfRegionDims.x, y * halfRegionDims.y);
+                    Vector2f offset = Vector2f(x * halfRegionDims.x, y * halfRegionDims.y);
 
                     FloatRect childAABB = rectFromBounds(regionLowerBound + offset, regionCenter + offset);
 
@@ -128,7 +137,7 @@ private:
         QuadtreeOccupant[] outsideRootCopy = _outsideRoot.dup;
         _outsideRoot.length = 0;
 
-        for (occupant; outsideRootCopy)
+        foreach(occupant; outsideRootCopy)
             add(occupant);
     }
 
