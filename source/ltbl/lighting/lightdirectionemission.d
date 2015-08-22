@@ -22,32 +22,34 @@ class LightDirectionEmission {
         sourceDistance = 100.0f;
     }
 
-    void render(const ref View view, ref RenderTexture lightTempTexture,
+    void render(ref const(View) view, ref RenderTexture lightTempTexture,
                 ref RenderTexture antumbraTempTexture,
-                const QuadtreeOccupant[] shapes,
+                const(QuadtreeOccupant[]) shapes,
                 ref Shader unshadowShader, float shadowExtension)
     {
         lightTempTexture.setView(view);
 
-        LightSystem::clear(lightTempTexture, Color::White);
+        LightSystem.clear(lightTempTexture, Color.White);
 
         // Mask off light shape (over-masking - mask too much, reveal penumbra/antumbra afterwards)
         for (int i = 0; i < shapes.size(); i++) {
-            LightShape* lightShape = static_cast<LightShape*>(shapes[i]);
+            LightShape lightShape = shapes[i];
 
             // Get boundaries
-            LightSystem::Penumbra[] penumbras;
+            LightSystem.Penumbra[] penumbras;
             int[] innerBoundaryIndices;
             int[] outerBoundaryIndices;
             Vector2f[] innerBoundaryVectors;
             Vector2f[] outerBoundaryVectors;
 
-            LightSystem::getPenumbrasDirection(penumbras, innerBoundaryIndices, innerBoundaryVectors, outerBoundaryIndices, outerBoundaryVectors, lightShape._shape, castDirection, sourceRadius, sourceDistance);
+            LightSystem.getPenumbrasDirection(penumbras, innerBoundaryIndices,
+                        innerBoundaryVectors, outerBoundaryIndices, outerBoundaryVectors,
+                        lightShape._shape, castDirection, sourceRadius, sourceDistance);
 
             if (innerBoundaryIndices.size() != 2 || outerBoundaryIndices.size() != 2)
                 continue;
 
-            LightSystem::clear(antumbraTempTexture, Color::White);
+            LightSystem.clear(antumbraTempTexture, Color.White);
 
             antumbraTempTexture.setView(view);
 
@@ -56,7 +58,7 @@ class LightDirectionEmission {
             float maxDist = 0.0f;
 
             for (int j = 0; j < lightShape._shape.getPointCount(); j++)
-                maxDist = std::max(maxDist, vectorMagnitude(view.getCenter() - lightShape._shape.getTransform().transformPoint(lightShape._shape.getPoint(j))));
+                maxDist = std.max(maxDist, vectorMagnitude(view.getCenter() - lightShape._shape.getTransform().transformPoint(lightShape._shape.getPoint(j))));
 
             float totalShadowExtension = shadowExtension + maxDist;
 
@@ -67,20 +69,20 @@ class LightDirectionEmission {
             maskShape.setPoint(2, lightShape._shape.getTransform().transformPoint(lightShape._shape.getPoint(innerBoundaryIndices[1])) + vectorNormalize(innerBoundaryVectors[1]) * totalShadowExtension);
             maskShape.setPoint(3, lightShape._shape.getTransform().transformPoint(lightShape._shape.getPoint(innerBoundaryIndices[0])) + vectorNormalize(innerBoundaryVectors[0]) * totalShadowExtension);
 
-            maskShape.setFillColor(Color::Black);
+            maskShape.setFillColor(Color.Black);
 
             antumbraTempTexture.draw(maskShape);
 
             VertexArray vertexArray;
 
-            vertexArray.setPrimitiveType(PrimitiveType::Triangles);
+            vertexArray.setPrimitiveType(PrimitiveType.Triangles);
 
             vertexArray.resize(3);
 
             {
                 RenderStates states;
-                states.blendMode = BlendAdd;
-                states.shader = &unshadowShader;
+                states.blendMode = BlendMode.Add;
+                states.shader = unshadowShader;
 
                 // Unmask with penumbras
                 for (int j = 0; j < penumbras.size(); j++) {
@@ -103,9 +105,9 @@ class LightDirectionEmission {
 
             // Multiply back to lightTempTexture
             RenderStates antumbraRenderStates;
-            antumbraRenderStates.blendMode = BlendMultiply;
+            antumbraRenderStates.blendMode = BlendMode.Multiply;
 
-            Sprite s;
+            Sprite s = new Sprite();
 
             s.setTexture(antumbraTempTexture.getTexture());
 
@@ -117,10 +119,10 @@ class LightDirectionEmission {
         }
 
         for (int i = 0; i < shapes.size(); i++) {
-            LightShape* lightShape = static_cast<LightShape*>(shapes[i]);
+            LightShape lightShape = cast(LightShape) shapes[i];
 
             if (lightShape._renderLightOverShape) {
-                lightShape._shape.setFillColor(Color::White);
+                lightShape._shape.setFillColor(Color.White);
 
                 lightTempTexture.draw(lightShape._shape);
             }
@@ -128,7 +130,7 @@ class LightDirectionEmission {
 
         // Multiplicatively blend the light over the shadows
         RenderStates lightRenderStates;
-        lightRenderStates.blendMode = BlendMultiply;
+        lightRenderStates.blendMode = BlendMode.Multiply;
 
         lightTempTexture.setView(lightTempTexture.getDefaultView());
 
