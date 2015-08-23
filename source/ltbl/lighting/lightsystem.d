@@ -1,24 +1,20 @@
 module ltbl.lighting.lightsystem;
 
-import ltbl.quadtree.dynamicquadtree;
-
-import ltbl.lighting.lightpointemission;
-import ltbl.lighting.lightdirectionemission;
-import ltbl.lighting.lightshape;
+import ltbl.d;
 
 import dsfml.graphics;
 
-struct Penumbra {
-    Vector2f source;
-    Vector2f lightEdge;
-    Vector2f darkEdge;
-    float lightBrightness;
-    float darkBrightness;
-
-    float distance;
-};
-
 class LightSystem {
+
+    static struct Penumbra {
+        Vector2f source;
+        Vector2f lightEdge;
+        Vector2f darkEdge;
+        float lightBrightness;
+        float darkBrightness;
+
+        float distance;
+    };
 
     public
     {
@@ -206,7 +202,7 @@ class LightSystem {
     }
 
 
-private:
+package:
     static void getPenumbrasPoint(Penumbra[] penumbras,
                 int[] innerBoundaryIndices,
                 Vector2f[] innerBoundaryVectors,
@@ -844,7 +840,7 @@ private:
     }
 
 
-    static void clear(ref RenderTarget rt, ref const(Color) color)
+    static void clear(RenderTarget rt, ref const(Color) color)
     {
         RectangleShape shape;
         shape.setSize(Vector2f(rt.getSize().x, rt.getSize().y));

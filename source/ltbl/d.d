@@ -18,6 +18,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 module ltbl.d;
 
-public import math;
-//public import ltbl.lighting;
-//public import ltbl.quadtree;
+public import ltbl.math;
+public import ltbl.lighting.lightdirectionemission;
+public import ltbl.lighting.lightpointemission;
+public import ltbl.lighting.lightshape;
+public import ltbl.lighting.lightsystem;
+public import ltbl.quadtree.dynamicquadtree;
+public import ltbl.quadtree.quadtree;
+public import ltbl.quadtree.quadtreenode;
+public import ltbl.quadtree.quadtreeoccupant;
+public import ltbl.quadtree.staticquadtree;

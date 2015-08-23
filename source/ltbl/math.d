@@ -1,14 +1,15 @@
+module ltbl.math;
 
 import std.math;
 
 import dsfml.system;
 import dsfml.graphics;
 
-Vector2f rectCenter(in ref FloatRect rect) {
+Vector2f rectCenter(in FloatRect rect) {
     return Vector2f(rect.left + rect.width * 0.5f, rect.top + rect.height * 0.5f);
 }
 
-bool rectIntersects(in ref FloatRect rect, in ref FloatRect other) {
+bool rectIntersects(in FloatRect rect, in FloatRect other) {
     if (rect.left + rect.width < other.left)
         return false;
     if (rect.top + rect.height < other.top)
@@ -21,7 +22,7 @@ bool rectIntersects(in ref FloatRect rect, in ref FloatRect other) {
     return true;
 }
 
-bool rectContains(in ref FloatRect rect, in ref FloatRect other) {
+bool rectContains(in FloatRect rect, in FloatRect other) {
     if (other.left < rect.left)
         return false;
     if (other.top < rect.top)
@@ -34,35 +35,35 @@ bool rectContains(in ref FloatRect rect, in ref FloatRect other) {
     return true;
 }
 
-Vector2f rectHalfDims(in ref FloatRect rect) {
+Vector2f rectHalfDims(in FloatRect rect) {
     return Vector2f(rect.width * 0.5f, rect.height * 0.5f);
 }
 
-Vector2f rectDims(in ref FloatRect rect) {
+Vector2f rectDims(in FloatRect rect) {
     return Vector2f(rect.width, rect.height);
 }
 
-Vector2f rectLowerBound(in ref FloatRect rect) {
+Vector2f rectLowerBound(in FloatRect rect) {
     return Vector2f(rect.left, rect.top);
 }
 
-Vector2f rectUpperBound(in ref FloatRect rect) {
+Vector2f rectUpperBound(in FloatRect rect) {
     return Vector2f(rect.left + rect.width, rect.top + rect.height);
 }
 
-FloatRect rectFromBounds(in ref Vector2f lowerBound, in ref Vector2f upperBound) {
+FloatRect rectFromBounds(in Vector2f lowerBound, in Vector2f upperBound) {
     return FloatRect(lowerBound.x, lowerBound.y, upperBound.x - lowerBound.x, upperBound.y - lowerBound.y);
 }
 
-float vectorMagnitude(in ref Vector2f vector) {
+float vectorMagnitude(in Vector2f vector) {
     return sqrt(vector.x * vector.x + vector.y * vector.y);
 }
 
-float vectorMagnitudeSquared(in ref Vector2f vector) {
+float vectorMagnitudeSquared(in Vector2f vector) {
     return vector.x * vector.x + vector.y * vector.y;
 }
 
-Vector2f vectorNormalize(in ref Vector2f vector) {
+Vector2f vectorNormalize(in Vector2f vector) {
     float magnitude = vectorMagnitude(vector);
 
     if (magnitude == 0.0f)
@@ -73,23 +74,23 @@ Vector2f vectorNormalize(in ref Vector2f vector) {
     return Vector2f(vector.x * distInv, vector.y * distInv);
 }
 
-float vectorProject(in ref Vector2f left, in ref Vector2f right) {
+float vectorProject(in Vector2f left, in Vector2f right) {
     assert(vectorMagnitudeSquared(right) != 0.0f);
 
     return vectorDot(left, right) / vectorMagnitudeSquared(right);
 }
 
-FloatRect rectRecenter(in ref FloatRect rect, in ref Vector2f center) {
+FloatRect rectRecenter(in FloatRect rect, in Vector2f center) {
     Vector2f dims = rectDims(rect);
 
     return FloatRect(center - rectHalfDims(rect), dims);
 }
 
-float vectorDot(in ref Vector2f left, in ref Vector2f right) {
+float vectorDot(in Vector2f left, in Vector2f right) {
     return left.x * right.x + left.y * right.y;
 }
 
-FloatRect rectExpand(in ref FloatRect rect, in ref Vector2f point) {
+FloatRect rectExpand(in FloatRect rect, in Vector2f point) {
     Vector2f lowerBound = rectLowerBound(rect);
     Vector2f upperBound = rectUpperBound(rect);
 
@@ -106,7 +107,7 @@ FloatRect rectExpand(in ref FloatRect rect, in ref Vector2f point) {
     return rectFromBounds(lowerBound, upperBound);
 }
 
-bool shapeIntersection(in ref ConvexShape left, in ref ConvexShape right) {
+bool shapeIntersection(in ConvexShape left, in ConvexShape right) {
     Vector2f[] transformedLeft = new Vector2f[left.getPointCount()];
 
     for (int i = 0; i < left.getPointCount(); i++)
@@ -176,7 +177,7 @@ bool shapeIntersection(in ref ConvexShape left, in ref ConvexShape right) {
     return true;
 }
 
-ConvexShape shapeFromRect(in ref FloatRect rect) {
+ConvexShape shapeFromRect(in FloatRect rect) {
     ConvexShape shape = new ConvexShape(4);
 
     Vector2f halfDims = rectHalfDims(rect);
@@ -191,7 +192,7 @@ ConvexShape shapeFromRect(in ref FloatRect rect) {
     return shape;
 }
 
-ConvexShape shapeFixWinding(in ref ConvexShape shape) {
+ConvexShape shapeFixWinding(in ConvexShape shape) {
     Vector2f center = Vector2f(0.0f, 0.0f);
     DList!(Vector2f) points;
 
@@ -242,8 +243,8 @@ ConvexShape shapeFixWinding(in ref ConvexShape shape) {
     return fixedShape;
 }
 
-bool rayIntersect(in ref Vector2f as, in ref Vector2f ad, in ref Vector2f bs,
-                    in ref Vector2f bd, out Vector2f intersection) {
+bool rayIntersect(in Vector2f as, in Vector2f ad, in Vector2f bs,
+                    in Vector2f bd, out Vector2f intersection) {
     float dx = bs.x - as.x;
     float dy = bs.y - as.y;
     float det = bd.x * ad.y - bd.y * ad.x;

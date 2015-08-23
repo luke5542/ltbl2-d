@@ -1,7 +1,6 @@
 module ltbl.quadtree.quadtreenode;
 
-import ltbl.quadtree.quadtreeoccupant;
-import ltbl.quadtree.quadtree;
+import ltbl.d;
 
 import dsfml.graphics;
 

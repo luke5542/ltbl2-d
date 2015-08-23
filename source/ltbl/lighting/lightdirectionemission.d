@@ -1,7 +1,10 @@
 module ltbl.lighting.lightdirectionemission;
 
+import ltbl.d;
+
 import dsfml.graphics;
-import ltbl.quadtree.quadtreeoccupant;
+
+import std.math;
 
 class LightDirectionEmission {
 
@@ -27,13 +30,13 @@ class LightDirectionEmission {
                 const(QuadtreeOccupant[]) shapes,
                 ref Shader unshadowShader, float shadowExtension)
     {
-        lightTempTexture.setView(view);
+        lightTempTexture.view = view;
 
         LightSystem.clear(lightTempTexture, Color.White);
 
         // Mask off light shape (over-masking - mask too much, reveal penumbra/antumbra afterwards)
-        for (int i = 0; i < shapes.size(); i++) {
-            LightShape lightShape = shapes[i];
+        for (int i = 0; i < shapes.length; i++) {
+            LightShape lightShape = cast(LightShape) shapes[i];
 
             // Get boundaries
             LightSystem.Penumbra[] penumbras;
@@ -44,38 +47,38 @@ class LightDirectionEmission {
 
             LightSystem.getPenumbrasDirection(penumbras, innerBoundaryIndices,
                         innerBoundaryVectors, outerBoundaryIndices, outerBoundaryVectors,
-                        lightShape._shape, castDirection, sourceRadius, sourceDistance);
+                        lightShape.shape, castDirection, sourceRadius, sourceDistance);
 
-            if (innerBoundaryIndices.size() != 2 || outerBoundaryIndices.size() != 2)
+            if (innerBoundaryIndices.length != 2 || outerBoundaryIndices.length != 2)
                 continue;
 
             LightSystem.clear(antumbraTempTexture, Color.White);
 
-            antumbraTempTexture.setView(view);
+            antumbraTempTexture.view = view;
 
             ConvexShape maskShape;
 
             float maxDist = 0.0f;
 
-            for (int j = 0; j < lightShape._shape.getPointCount(); j++)
-                maxDist = std.max(maxDist, vectorMagnitude(view.getCenter() - lightShape._shape.getTransform().transformPoint(lightShape._shape.getPoint(j))));
+            for (int j = 0; j < lightShape.shape.pointCount; j++)
+                maxDist = fmax(maxDist, vectorMagnitude(view.center - lightShape.shape.getTransform().transformPoint(lightShape.shape.getPoint(j))));
 
             float totalShadowExtension = shadowExtension + maxDist;
 
-            maskShape.setPointCount(4);
+            maskShape.pointCount = 4;
 
-            maskShape.setPoint(0, lightShape._shape.getTransform().transformPoint(lightShape._shape.getPoint(innerBoundaryIndices[0])));
-            maskShape.setPoint(1, lightShape._shape.getTransform().transformPoint(lightShape._shape.getPoint(innerBoundaryIndices[1])));
-            maskShape.setPoint(2, lightShape._shape.getTransform().transformPoint(lightShape._shape.getPoint(innerBoundaryIndices[1])) + vectorNormalize(innerBoundaryVectors[1]) * totalShadowExtension);
-            maskShape.setPoint(3, lightShape._shape.getTransform().transformPoint(lightShape._shape.getPoint(innerBoundaryIndices[0])) + vectorNormalize(innerBoundaryVectors[0]) * totalShadowExtension);
+            maskShape.setPoint(0, lightShape.shape.getTransform().transformPoint(lightShape.shape.getPoint(innerBoundaryIndices[0])));
+            maskShape.setPoint(1, lightShape.shape.getTransform().transformPoint(lightShape.shape.getPoint(innerBoundaryIndices[1])));
+            maskShape.setPoint(2, lightShape.shape.getTransform().transformPoint(lightShape.shape.getPoint(innerBoundaryIndices[1])) + vectorNormalize(innerBoundaryVectors[1]) * totalShadowExtension);
+            maskShape.setPoint(3, lightShape.shape.getTransform().transformPoint(lightShape.shape.getPoint(innerBoundaryIndices[0])) + vectorNormalize(innerBoundaryVectors[0]) * totalShadowExtension);
 
-            maskShape.setFillColor(Color.Black);
+            maskShape.fillColor = Color.Black;
 
             antumbraTempTexture.draw(maskShape);
 
             VertexArray vertexArray;
 
-            vertexArray.setPrimitiveType(PrimitiveType.Triangles);
+            vertexArray.primativeType = PrimitiveType.Triangles;
 
             vertexArray.resize(3);
 
@@ -85,13 +88,13 @@ class LightDirectionEmission {
                 states.shader = unshadowShader;
 
                 // Unmask with penumbras
-                for (int j = 0; j < penumbras.size(); j++) {
-                    unshadowShader.setParameter("lightBrightness", penumbras[j]._lightBrightness);
-                    unshadowShader.setParameter("darkBrightness", penumbras[j]._darkBrightness);
+                for (int j = 0; j < penumbras.length; j++) {
+                    unshadowShader.setParameter("lightBrightness", penumbras[j].lightBrightness);
+                    unshadowShader.setParameter("darkBrightness", penumbras[j].darkBrightness);
 
-                    vertexArray[0].position = penumbras[j]._source;
-                    vertexArray[1].position = penumbras[j]._source + vectorNormalize(penumbras[j]._lightEdge) * totalShadowExtension;
-                    vertexArray[2].position = penumbras[j]._source + vectorNormalize(penumbras[j]._darkEdge) * totalShadowExtension;
+                    vertexArray[0].position = penumbras[j].source;
+                    vertexArray[1].position = penumbras[j].source + vectorNormalize(penumbras[j].lightEdge) * totalShadowExtension;
+                    vertexArray[2].position = penumbras[j].source + vectorNormalize(penumbras[j].darkEdge) * totalShadowExtension;
 
                     vertexArray[0].texCoords = Vector2f(0.0f, 1.0f);
                     vertexArray[1].texCoords = Vector2f(1.0f, 0.0f);
@@ -111,20 +114,20 @@ class LightDirectionEmission {
 
             s.setTexture(antumbraTempTexture.getTexture());
 
-            lightTempTexture.setView(lightTempTexture.getDefaultView());
+            lightTempTexture.view = lightTempTexture.getDefaultView();
 
             lightTempTexture.draw(s, antumbraRenderStates);
 
-            lightTempTexture.setView(view);
+            lightTempTexture.view = view;
         }
 
-        for (int i = 0; i < shapes.size(); i++) {
+        for(int i = 0; i < shapes.length; i++) {
             LightShape lightShape = cast(LightShape) shapes[i];
 
-            if (lightShape._renderLightOverShape) {
-                lightShape._shape.setFillColor(Color.White);
+            if (lightShape.renderLightOverShape) {
+                lightShape.shape.fillColor = Color.White;
 
-                lightTempTexture.draw(lightShape._shape);
+                lightTempTexture.draw(lightShape.shape);
             }
         }
 
@@ -132,7 +135,7 @@ class LightDirectionEmission {
         RenderStates lightRenderStates;
         lightRenderStates.blendMode = BlendMode.Multiply;
 
-        lightTempTexture.setView(lightTempTexture.getDefaultView());
+        lightTempTexture.view = lightTempTexture.getDefaultView();
 
         lightTempTexture.draw(emissionSprite, lightRenderStates);
 

@@ -1,12 +1,12 @@
 module ltbl.lighting.lightpointemission;
 
-import ltbl.quadtree.quadtreeoccupant;
+import ltbl.d;
 
 import dsfml.graphics;
 
 private struct OuterEdges {
     int[] outerBoundaryIndices;
-    Vector2f outerBoundaryVectors;
+    Vector2f[] outerBoundaryVectors;
 }
 
 class LightPointEmission : QuadtreeOccupant {
@@ -28,7 +28,7 @@ class LightPointEmission : QuadtreeOccupant {
         shadowOverExtendMultiplier = 1.4f;
     }
 
-    override FloatRect getAABB() const {
+    override FloatRect getAABB() {
         return emissionSprite.getGlobalBounds();
     }
 
@@ -40,31 +40,31 @@ class LightPointEmission : QuadtreeOccupant {
     {
         LightSystem.clear(emissionTempTexture, Color.Black);
 
-        emissionTempTexture.setView(view);
+        emissionTempTexture.view = view;
         emissionTempTexture.draw(emissionSprite);
         emissionTempTexture.display();
 
         LightSystem.clear(lightTempTexture, Color.Black);
 
-        lightTempTexture.setView(view);
+        lightTempTexture.view = view;
 
         lightTempTexture.draw(emissionSprite);
 
         Transform t;
-        t.translate(emissionSprite.getPosition().x, emissionSprite.getPosition().y);
-        t.rotate(emissionSprite.getRotation());
-        t.scale(emissionSprite.getScale().x, emissionSprite.getScale().y);
+        t.translate(emissionSprite.position.x, emissionSprite.position.y);
+        t.rotate(emissionSprite.rotation);
+        t.scale(emissionSprite.scale.x, emissionSprite.scale.y);
 
         Vector2f castCenter = t.transformPoint(localCastCenter);
 
         float shadowExtension = shadowOverExtendMultiplier * (getAABB().width + getAABB().height);
 
-        OuterEdges[] outerEdges = new OuterEdges[shapes.size()];
+        OuterEdges[] outerEdges = new OuterEdges[shapes.length];
 
         // Mask off light shape (over-masking - mask too much, reveal penumbra/antumbra afterwards)
-        for (int i = 0; i < shapes.size(); i++)
+        for (int i = 0; i < shapes.length; i++)
         {
-            LightShape lightShape = shapes[i];
+            LightShape lightShape = cast(LightShape) shapes[i];
 
             // Get boundaries
             int[] innerBoundaryIndices;
@@ -76,13 +76,13 @@ class LightPointEmission : QuadtreeOccupant {
                 outerEdges[i].outerBoundaryVectors, lightShape.shape,
                 castCenter, sourceRadius);
 
-            if (innerBoundaryIndices.size() != 2 || outerEdges[i].outerBoundaryIndices.size() != 2)
+            if (innerBoundaryIndices.length != 2 || outerEdges[i].outerBoundaryIndices.length != 2)
                 continue;
 
             // Render shape
             if (!lightShape.renderLightOverShape)
             {
-                lightShape.shape.setFillColor(Color.Black);
+                lightShape.shape.fillColor = Color.Black;
 
                 lightTempTexture.draw(lightShape.shape);
             }
@@ -107,7 +107,7 @@ class LightPointEmission : QuadtreeOccupant {
 
                 LightSystem.clear(antumbraTempTexture, Color.White);
 
-                antumbraTempTexture.setView(view);
+                antumbraTempTexture.view = view;
 
                 Vector2f intersectionInner;
 
@@ -115,13 +115,13 @@ class LightPointEmission : QuadtreeOccupant {
                 {
                     ConvexShape maskShape = new ConvexShape();
 
-                    maskShape.setPointCount(3);
+                    maskShape.pointCount = 3;
 
                     maskShape.setPoint(0, asi);
                     maskShape.setPoint(1, bsi);
                     maskShape.setPoint(2, intersectionInner);
 
-                    maskShape.setFillColor(Color.Black);
+                    maskShape.fillColor = Color.Black;
 
                     antumbraTempTexture.draw(maskShape);
                 }
@@ -129,31 +129,27 @@ class LightPointEmission : QuadtreeOccupant {
                 {
                     ConvexShape maskShape = new ConvexShape();
 
-                    maskShape.setPointCount(4);
+                    maskShape.pointCount = 4;
 
                     maskShape.setPoint(0, asi);
                     maskShape.setPoint(1, bsi);
                     maskShape.setPoint(2, bsi + vectorNormalize(bdi) * shadowExtension);
                     maskShape.setPoint(3, asi + vectorNormalize(adi) * shadowExtension);
 
-                    maskShape.setFillColor(Color.Black);
+                    maskShape.fillColor = Color.Black;
 
                     antumbraTempTexture.draw(maskShape);
                 }
 
                 // Add light back for antumbra/penumbras
-                VertexArray vertexArray = new VertexArray();
-
-                vertexArray.setPrimitiveType(PrimitiveType.Triangles);
-
-                vertexArray.resize(3);
+                VertexArray vertexArray = new VertexArray(PrimitiveType.Triangles, 3);
 
                 RenderStates penumbraRenderStates;
                 penumbraRenderStates.blendMode = BlendMode.Add;
                 penumbraRenderStates.shader = unshadowShader;
 
                 // Unmask with penumbras
-                for (int j = 0; j < penumbras.size(); j++)
+                for (int j = 0; j < penumbras.length; j++)
                 {
                     unshadowShader.setParameter("lightBrightness", penumbras[j].lightBrightness);
                     unshadowShader.setParameter("darkBrightness", penumbras[j].darkBrightness);
@@ -179,39 +175,35 @@ class LightPointEmission : QuadtreeOccupant {
 
                 s.setTexture(antumbraTempTexture.getTexture());
 
-                lightTempTexture.setView(lightTempTexture.getDefaultView());
+                lightTempTexture.view = lightTempTexture.getDefaultView();
 
                 lightTempTexture.draw(s, antumbraRenderStates);
 
-                lightTempTexture.setView(view);
+                lightTempTexture.view = view;
             }
             else
             {
                 ConvexShape maskShape = new ConvexShape();
 
-                maskShape.setPointCount(4);
+                maskShape.pointCount = 4;
 
                 maskShape.setPoint(0, as);
                 maskShape.setPoint(1, bs);
                 maskShape.setPoint(2, bs + vectorNormalize(bd) * shadowExtension);
                 maskShape.setPoint(3, as + vectorNormalize(ad) * shadowExtension);
 
-                maskShape.setFillColor(Color.Black);
+                maskShape.fillColor = Color.Black;
 
                 lightTempTexture.draw(maskShape);
 
-                VertexArray vertexArray;
-
-                vertexArray.setPrimitiveType(PrimitiveType.Triangles);
-
-                vertexArray.resize(3);
+                VertexArray vertexArray = new VertexArray(PrimitiveType.Triangles, 3);
 
                 RenderStates penumbraRenderStates;
                 penumbraRenderStates.blendMode = BlendMode.Multiply;
                 penumbraRenderStates.shader = unshadowShader;
 
                 // Unmask with penumbras
-                for (int j = 0; j < penumbras.size(); j++)
+                for (int j = 0; j < penumbras.length; j++)
                 {
                     unshadowShader.setParameter("lightBrightness", penumbras[j].lightBrightness);
                     unshadowShader.setParameter("darkBrightness", penumbras[j].darkBrightness);
@@ -229,13 +221,13 @@ class LightPointEmission : QuadtreeOccupant {
             }
         }
 
-        for (int i = 0; i < shapes.size(); i++)
+        for (int i = 0; i < shapes.length; i++)
         {
             LightShape lightShape = cast(LightShape) shapes[i];
 
             if (lightShape.renderLightOverShape)
             {
-                lightShape.shape.setFillColor(Color.White);
+                lightShape.shape.fillColor = Color.White;
 
                 auto states = RenderStates.Default;
                 states.shader = lightOverShapeShader;
@@ -243,7 +235,7 @@ class LightPointEmission : QuadtreeOccupant {
             }
             else
             {
-                lightShape.shape.setFillColor(Color.Black);
+                lightShape.shape.fillColor = Color.Black;
 
                 lightTempTexture.draw(lightShape.shape);
             }

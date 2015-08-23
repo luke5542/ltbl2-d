@@ -1,6 +1,6 @@
 module ltbl.lighting.lightshape;
 
-import ltbl.quadtree.quadtreeoccupant;
+import ltbl.d;
 
 import dsfml.graphics;
 
@@ -14,10 +14,10 @@ class LightShape : QuadtreeOccupant {
 
     this()
     {
-        _renderLightOverShape = true;
+        renderLightOverShape = true;
     }
 
-    override FloatRect getAABB() const {
-        return _shape.getGlobalBounds();
+    override FloatRect getAABB() {
+        return shape.getGlobalBounds();
     }
 }
