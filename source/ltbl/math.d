@@ -5,6 +5,8 @@ import std.math;
 import dsfml.system;
 import dsfml.graphics;
 
+public immutable RAD_TO_DEG = 57.2957795;
+
 Vector2f rectCenter(in FloatRect rect) {
     return Vector2f(rect.left + rect.width * 0.5f, rect.top + rect.height * 0.5f);
 }

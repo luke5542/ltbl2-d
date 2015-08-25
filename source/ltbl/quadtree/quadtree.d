@@ -47,7 +47,7 @@ class Quadtree
         }
     }
 
-    abstract void add(ref QuadtreeOccupant oc);
+    abstract void add(QuadtreeOccupant oc);
 
     /*void pruneDeadReferences() {
         for (occupant; _outsideRoot)
@@ -62,7 +62,7 @@ class Quadtree
             _rootNode.pruneDeadReferences();
     }*/
 
-    void queryRegion(QuadtreeOccupant[] result, ref const(FloatRect) region)
+    void queryRegion(QuadtreeOccupant[] result, in FloatRect region)
     {
         // Query outside root elements
         foreach(occupant; _outsideRoot)

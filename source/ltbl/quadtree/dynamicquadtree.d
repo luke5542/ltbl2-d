@@ -30,7 +30,7 @@ class DynamicQuadtree : Quadtree {
     }
 
     // Inherited from Quadtree
-    override void add(ref QuadtreeOccupant oc) {
+    override void add(QuadtreeOccupant oc) {
         assert(created());
 
         // If the occupant fits in the root node

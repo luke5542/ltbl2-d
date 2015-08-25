@@ -78,7 +78,7 @@ class LightDirectionEmission {
 
             VertexArray vertexArray;
 
-            vertexArray.primativeType = PrimitiveType.Triangles;
+            vertexArray.primitiveType = PrimitiveType.Triangles;
 
             vertexArray.resize(3);
 

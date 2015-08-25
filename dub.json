@@ -12,6 +12,6 @@
 
     "dependencies": {
         "d-unit": "~master",
-        "dsfml:graphics": "~master"
+        "dsfml:graphics": "~2.1-rc"
     }
 }

@@ -47,7 +47,7 @@ class LightSystem {
 
     void create(ref const(FloatRect) rootRegion,
                 ref const(Vector2u) imageSize,
-                ref const(Texture) penumbraTexture,
+                ref Texture penumbraTexture,
                 ref Shader unshadowShader,
                 ref Shader lightOverShapeShader)
     {
@@ -71,12 +71,12 @@ class LightSystem {
                 ref Shader lightOverShapeShader)
     {
         clear(_compositionTexture, ambientColor);
-        _compositionTexture.setView(_compositionTexture.getDefaultView());
+        _compositionTexture.view = _compositionTexture.getDefaultView();
 
         // Get bounding rectangle of view
-        FloatRect viewBounds = FloatRect(view.getCenter().x, view.getCenter().y, 0.0f, 0.0f);
+        FloatRect viewBounds = FloatRect(view.center.x, view.center.y, 0.0f, 0.0f);
 
-        _lightTempTexture.setView(view);
+        _lightTempTexture.view = view;
 
         viewBounds = rectExpand(viewBounds, _lightTempTexture.mapPixelToCoords(Vector2i(0, 0)));
         viewBounds = rectExpand(viewBounds, _lightTempTexture.mapPixelToCoords(Vector2i(_lightTempTexture.getSize().x, 0)));
@@ -87,8 +87,8 @@ class LightSystem {
 
         _lightPointEmissionQuadtree.queryRegion(viewPointEmissionLights, viewBounds);
 
-        for (int l = 0; l < viewPointEmissionLights.size(); l++) {
-            LightPointEmission pointEmissionLight = viewPointEmissionLights[l];
+        for (int l = 0; l < viewPointEmissionLights.length; l++) {
+            LightPointEmission pointEmissionLight = cast(LightPointEmission) viewPointEmissionLights[l];
 
             // Query shapes this light is affected by
             QuadtreeOccupant[] lightShapes;
@@ -108,11 +108,9 @@ class LightSystem {
         }
 
         foreach(emission; _directionEmissionLights) {
-            LightDirectionEmission directionEmissionLight = emission.get();
-
             FloatRect centeredViewBounds = rectRecenter(viewBounds, Vector2f(0.0f, 0.0f));
 
-            float maxDim = max(centeredViewBounds.width, centeredViewBounds.height);
+            float maxDim = fmax(centeredViewBounds.width, centeredViewBounds.height);
 
             FloatRect extendedViewBounds = rectFromBounds(Vector2f(-maxDim, -maxDim) * directionEmissionRadiusMultiplier,
                 Vector2f(maxDim, maxDim) * directionEmissionRadiusMultiplier + Vector2f(directionEmissionRange, 0.0f));
@@ -120,17 +118,17 @@ class LightSystem {
             float shadowExtension = vectorMagnitude(rectLowerBound(centeredViewBounds)) * directionEmissionRadiusMultiplier * 2.0f;
 
             ConvexShape directionShape = shapeFromRect(extendedViewBounds);
-            directionShape.setPosition(view.getCenter());
+            directionShape.position = view.center;
 
-            Vector2f normalizedCastDirection = vectorNormalize(directionEmissionLight._castDirection);
+            Vector2f normalizedCastDirection = vectorNormalize(emission.castDirection);
 
-            directionShape.setRotation(_radToDeg * atan2(normalizedCastDirection.y, normalizedCastDirection.x));
+            directionShape.rotation = RAD_TO_DEG * atan2(normalizedCastDirection.y, normalizedCastDirection.x);
 
             QuadtreeOccupant[] viewLightShapes;
 
             _shapeQuadtree.queryShape(viewLightShapes, directionShape);
 
-            directionEmissionLight.render(view, _lightTempTexture, _antumbraTempTexture,
+            emission.render(view, _lightTempTexture, _antumbraTempTexture,
                                             viewLightShapes, unshadowShader, shadowExtension);
 
             Sprite sprite = new Sprite();
@@ -145,8 +143,8 @@ class LightSystem {
         _compositionTexture.display();
     }
 
-    void addShape(ref const(LightShape) lightShape) {
-        _shapeQuadtree.add(lightShape.get());
+    void addShape(ref LightShape lightShape) {
+        _shapeQuadtree.add(lightShape);
 
         _lightShapes.insert(lightShape);
     }

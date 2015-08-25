@@ -23,7 +23,7 @@ class StaticQuadtree : Quadtree
     }
 
     // Inherited from Quadtree
-    void add(QuadtreeOccupant oc)
+    override void add(QuadtreeOccupant oc)
     {
         assert(created());
 
