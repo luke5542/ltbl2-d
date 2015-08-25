@@ -152,7 +152,7 @@ class LightSystem {
     }
 
     void removeShape(ref const(LightShape) lightShape) {
-        size_t toRemove = -1;
+        long toRemove = -1;
         foreach(i, shape; _lightShapes) {
             if(shape == lightShape) {
                 toRemove = i;
@@ -174,7 +174,7 @@ class LightSystem {
     }
 
     void removeLight(const(LightPointEmission) pointEmissionLight) {
-        size_t toRemove = -1;
+        long toRemove = -1;
         foreach(i, light; _pointEmissionLights) {
             if(light == pointEmissionLight) {
                 toRemove = i;
@@ -186,7 +186,7 @@ class LightSystem {
     }
 
     void removeLight(const(LightDirectionEmission) directionEmissionLight) {
-        size_t toRemove = -1;
+        long toRemove = -1;
         foreach(i, light; _directionEmissionLights) {
             if(light == directionEmissionLight) {
                 toRemove = i;
