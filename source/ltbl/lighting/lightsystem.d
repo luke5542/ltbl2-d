@@ -4,6 +4,8 @@ import ltbl.d;
 
 import dsfml.graphics;
 
+import std.algorithm;
+
 class LightSystem {
 
     static struct Penumbra {
@@ -146,46 +148,54 @@ class LightSystem {
     void addShape(ref LightShape lightShape) {
         _shapeQuadtree.add(lightShape);
 
-        _lightShapes.insert(lightShape);
+        _lightShapes ~= lightShape;
     }
 
     void removeShape(ref const(LightShape) lightShape) {
-        LightShape[] foundShapes = _lightShapes.find(lightShape);
-
-        if (foundShapes.length > 1) {
-            lightShape.quadtreeRemove();
-
-            _lightShapes.erase(it);
+        size_t toRemove = -1;
+        foreach(i, shape; _lightShapes) {
+            if(shape == lightShape) {
+                toRemove = i;
+                break;
+            }
         }
+        if(toRemove >= 0)
+            remove(_lightShapes, toRemove);
     }
 
-    void addLight(ref const(LightPointEmission) pointEmissionLight) {
-        _lightPointEmissionQuadtree.add(pointEmissionLight.get());
+    void addLight(LightPointEmission pointEmissionLight) {
+        _lightPointEmissionQuadtree.add(pointEmissionLight);
 
-        _pointEmissionLights.insert(pointEmissionLight);
+        _pointEmissionLights ~= pointEmissionLight;
     }
 
-    void addLight(ref const(LightDirectionEmission) directionEmissionLight) {
-        _directionEmissionLights.insert(directionEmissionLight);
+    void addLight(LightDirectionEmission directionEmissionLight) {
+        _directionEmissionLights ~= directionEmissionLight;
     }
 
-    void removeLight(ref const(LightPointEmission) pointEmissionLight) {
-        LightPointEmission[] emissions = _pointEmissionLights.find(pointEmissionLight);
-
-        if (emissions.length > 1) {
-            pointEmissionLight.quadtreeRemove();
-
-            _pointEmissionLights.erase(it);
+    void removeLight(const(LightPointEmission) pointEmissionLight) {
+        size_t toRemove = -1;
+        foreach(i, light; _pointEmissionLights) {
+            if(light == pointEmissionLight) {
+                toRemove = i;
+                break;
+            }
         }
+        if(toRemove >= 0)
+            remove(_pointEmissionLights, toRemove);
     }
 
-    void removeLight(ref const(LightDirectionEmission) directionEmissionLight) {
-        auto emissionLight = _directionEmissionLights.find(directionEmissionLight);
-
-        if (emissionLight !is null)
-            _directionEmissionLights.erase(it);
+    void removeLight(const(LightDirectionEmission) directionEmissionLight) {
+        size_t toRemove = -1;
+        foreach(i, light; _directionEmissionLights) {
+            if(light == directionEmissionLight) {
+                toRemove = i;
+                break;
+            }
+        }
+        if(toRemove >= 0)
+            remove(_directionEmissionLights, toRemove);
     }
-
 
     void trimLightPointEmissionQuadtree() {
         _lightPointEmissionQuadtree.trim();
@@ -195,7 +205,7 @@ class LightSystem {
         _shapeQuadtree.trim();
     }
 
-    const(Texture) getLightingTexture() const {
+    const(Texture) getLightingTexture() {
         return _compositionTexture.getTexture();
     }
 
@@ -206,10 +216,10 @@ package:
                 Vector2f[] innerBoundaryVectors,
                 int[] outerBoundaryIndices,
                 Vector2f[] outerBoundaryVectors,
-                const(ConvexShape) shape,
+                ConvexShape shape,
                 const(Vector2f) sourceCenter, float sourceRadius)
     {
-        const int numPoints = shape.getPointCount();
+        const int numPoints = shape.pointCount;
 
         bool[] bothEdgesBoundaryWindings = new bool[2];
 
@@ -306,7 +316,7 @@ package:
         }
 
         // Compute outer boundary vectors
-        for (int bi = 0; bi < outerBoundaryIndices.size(); bi++)
+        for (int bi = 0; bi < outerBoundaryIndices.length; bi++)
         {
             int penumbraIndex = outerBoundaryIndices[bi];
             bool winding = oneEdgeBoundaryWindings[bi];
@@ -327,7 +337,7 @@ package:
             outerBoundaryVectors ~= winding ? firstEdgeRay : secondEdgeRay;
         }
 
-        for (int bi = 0; bi < innerBoundaryIndices.size(); bi++)
+        for (int bi = 0; bi < innerBoundaryIndices.length; bi++)
         {
             int penumbraIndex = innerBoundaryIndices[bi];
             bool winding = bothEdgesBoundaryWindings[bi];
@@ -348,7 +358,7 @@ package:
             innerBoundaryVectors ~= winding ? secondEdgeRay : firstEdgeRay;
             Vector2f outerBoundaryVector = winding ? firstEdgeRay : secondEdgeRay;
 
-            if (innerBoundaryIndices.size() == 1)
+            if (innerBoundaryIndices.length == 1)
                 innerBoundaryVectors~= (outerBoundaryVector);
 
             // Add penumbras
@@ -447,7 +457,7 @@ package:
 
                         outerBoundaryVector = secondEdgeRay;
 
-                        if (!outerBoundaryVectors.empty())
+                        if (outerBoundaryVectors.length != 0)
                         {
                             outerBoundaryVectors[0] = penumbra.darkEdge;
                             outerBoundaryIndices[0] = penumbraIndex;
@@ -465,7 +475,7 @@ package:
 
                         hasPrevPenumbra = false;
 
-                        if (!outerBoundaryVectors.empty()) {
+                        if (outerBoundaryVectors.length != 0) {
                             outerBoundaryVectors[0] = penumbra.darkEdge;
                             outerBoundaryIndices[0] = penumbraIndex;
                         }
@@ -540,7 +550,7 @@ package:
 
                         hasPrevPenumbra = false;
 
-                        if (!outerBoundaryVectors.empty())
+                        if (outerBoundaryVectors.length != 0)
                         {
                             outerBoundaryVectors[1] = penumbra.darkEdge;
                             outerBoundaryIndices[1] = penumbraIndex;
