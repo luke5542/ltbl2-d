@@ -572,11 +572,11 @@ package:
                 Vector2f[] innerBoundaryVectors,
                 int[] outerBoundaryIndices,
                 Vector2f[] outerBoundaryVectors,
-                ref const(ConvexShape) shape,
+                ConvexShape shape,
                 ref const(Vector2f) sourceDirection,
                 float sourceRadius, float sourceDistance)
     {
-        const int numPoints = shape.getPointCount();
+        const int numPoints = shape.pointCount;
 
         bool[] bothEdgesBoundaryWindings;
 
@@ -647,7 +647,7 @@ package:
         if (facingFrontOneEdge[0] != facingFrontOneEdge[numPoints - 1])
             outerBoundaryIndices ~= 0;
 
-        for (int bi = 0; bi < innerBoundaryIndices.size(); bi++)
+        for (int bi = 0; bi < innerBoundaryIndices.length; bi++)
         {
             int penumbraIndex = innerBoundaryIndices[bi];
             bool winding = bothEdgesBoundaryWindings[bi];
@@ -851,11 +851,11 @@ package:
     static void clear(RenderTarget rt, ref const(Color) color)
     {
         RectangleShape shape;
-        shape.setSize(Vector2f(rt.getSize().x, rt.getSize().y));
-        shape.setFillColor(color);
-        View v = rt.getView();
-        rt.setView(rt.getDefaultView());
+        shape.size = Vector2f(rt.getSize().x, rt.getSize().y);
+        shape.fillColor = color;
+        const(View) v = rt.view;
+        rt.view = rt.getDefaultView();
         rt.draw(shape);
-        rt.setView(v);
+        rt.view = v;
     }
 }

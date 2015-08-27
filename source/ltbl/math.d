@@ -1,9 +1,14 @@
 module ltbl.math;
 
 import std.math;
+import std.container;
+import std.range;
+import std.algorithm;
 
 import dsfml.system;
 import dsfml.graphics;
+
+import ltbl.d;
 
 public immutable RAD_TO_DEG = 57.2957795;
 
@@ -109,22 +114,22 @@ FloatRect rectExpand(in FloatRect rect, in Vector2f point) {
     return rectFromBounds(lowerBound, upperBound);
 }
 
-bool shapeIntersection(in ConvexShape left, in ConvexShape right) {
-    Vector2f[] transformedLeft = new Vector2f[left.getPointCount()];
+bool shapeIntersection(ConvexShape left, ConvexShape right) {
+    Vector2f[] transformedLeft = new Vector2f[left.pointCount];
 
-    for (int i = 0; i < left.getPointCount(); i++)
+    for (int i = 0; i < left.pointCount; i++)
         transformedLeft[i] = left.getTransform().transformPoint(left.getPoint(i));
 
-    Vector2f[] transformedRight = new Vector2f[right.getPointCount()];
+    Vector2f[] transformedRight = new Vector2f[right.pointCount];
 
-    for (int i = 0; i < right.getPointCount(); i++)
+    for (int i = 0; i < right.pointCount; i++)
         transformedRight[i] = right.getTransform().transformPoint(right.getPoint(i));
 
-    for (int i = 0; i < left.getPointCount(); i++) {
+    for (int i = 0; i < left.pointCount; i++) {
         Vector2f point = transformedLeft[i];
         Vector2f nextPoint;
 
-        if (i == left.getPointCount() - 1)
+        if (i == left.pointCount - 1)
             nextPoint = transformedLeft[0];
         else
             nextPoint = transformedLeft[i + 1];
@@ -138,21 +143,21 @@ bool shapeIntersection(in ConvexShape left, in ConvexShape right) {
 
         float minRightProj = vectorProject(transformedRight[0], edgePerpendicular);
 
-        for (int j = 1; j < right.getPointCount(); j++) {
+        for (int j = 1; j < right.pointCount; j++) {
             float proj = vectorProject(transformedRight[j], edgePerpendicular);
 
-            minRightProj = min(minRightProj, proj);
+            minRightProj = fmin(minRightProj, proj);
         }
 
         if (minRightProj > pointProj)
             return false;
     }
 
-    for (int i = 0; i < right.getPointCount(); i++) {
+    for (int i = 0; i < right.pointCount; i++) {
         Vector2f point = transformedRight[i];
         Vector2f nextPoint;
 
-        if (i == right.getPointCount() - 1)
+        if (i == right.pointCount - 1)
             nextPoint = transformedRight[0];
         else
             nextPoint = transformedRight[i + 1];
@@ -166,10 +171,10 @@ bool shapeIntersection(in ConvexShape left, in ConvexShape right) {
 
         float minRightProj = vectorProject(transformedLeft[0], edgePerpendicular);
 
-        for (int j = 1; j < left.getPointCount(); j++) {
+        for (int j = 1; j < left.pointCount; j++) {
             float proj = vectorProject(transformedLeft[j], edgePerpendicular);
 
-            minRightProj = min(minRightProj, proj);
+            minRightProj = fmin(minRightProj, proj);
         }
 
         if (minRightProj > pointProj)
@@ -189,21 +194,21 @@ ConvexShape shapeFromRect(in FloatRect rect) {
     shape.setPoint(2, Vector2f(halfDims.x, halfDims.y));
     shape.setPoint(3, Vector2f(-halfDims.x, halfDims.y));
 
-    shape.setPosition(rectCenter(rect));
+    shape.position = rectCenter(rect);
 
     return shape;
 }
 
-ConvexShape shapeFixWinding(in ConvexShape shape) {
+ConvexShape shapeFixWinding(ConvexShape shape) {
     Vector2f center = Vector2f(0.0f, 0.0f);
     DList!(Vector2f) points;
 
-    for (int i = 0; i < shape.getPointCount(); i++) {
+    for (int i = 0; i < shape.pointCount; i++) {
         points.insertBack(shape.getPoint(i));
         center += shape.getPoint(i);
     }
 
-    center /= cast(float) shape.getPointCount();
+    center /= cast(float) shape.pointCount;
 
     // Fix winding
     Vector2f lastPoint = points.front();
@@ -212,11 +217,11 @@ ConvexShape shapeFixWinding(in ConvexShape shape) {
     Vector2f[] fixedPoints;
     fixedPoints ~= lastPoint;
 
-    while (fixedPoints.length < shape.getPointCount()) {
+    while (fixedPoints.length < shape.pointCount) {
         Vector2f centerToLastPoint = lastPoint - center;
         Vector2f lastPointDirection = vectorNormalize(Vector2f(-centerToLastPoint.y, centerToLastPoint.x));
 
-        float maxD = float.min;
+        float maxD = float.min_normal;
 
         Vector2f nextPoint;
 
@@ -234,12 +239,12 @@ ConvexShape shapeFixWinding(in ConvexShape shape) {
 
         fixedPoints ~= nextPoint;
 
-        points.remove(nextPoint);
+        points.linearRemove(take(find(points[], nextPoint), 1));
     }
 
-    ConvexShape fixedShape = new ConvexShape(shape.getPointCount());
+    ConvexShape fixedShape = new ConvexShape(shape.pointCount);
 
-    for (int i = 0; i < shape.getPointCount(); i++)
+    for (int i = 0; i < shape.pointCount; i++)
         fixedShape.setPoint(i, fixedPoints[i]);
 
     return fixedShape;

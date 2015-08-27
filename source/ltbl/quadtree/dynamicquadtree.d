@@ -1,7 +1,6 @@
 module ltbl.quadtree.dynamicquadtree;
 
-import ltbl.quadtree.quadtree;
-import ltbl.quadtree.quadtreeoccupant;
+import ltbl.d;
 
 import dsfml.graphics;
 
@@ -34,10 +33,10 @@ class DynamicQuadtree : Quadtree {
         assert(created());
 
         // If the occupant fits in the root node
-        if (rectContains(_rootNode.getRegion(), oc.getAABB()))
+        if (rectContains(_rootNode.region, oc.getAABB()))
             _rootNode.add(oc);
         else
-            _outsideRoot.insert(oc);
+            _outsideRoot ~= oc;
 
         setQuadtree(oc);
     }
@@ -49,7 +48,7 @@ class DynamicQuadtree : Quadtree {
 
     @property bool created() const
     {
-        return _rootNode != null;
+        return _rootNode !is null;
     }
 
     @property const(FloatRect) rootRegion() const
@@ -60,13 +59,13 @@ class DynamicQuadtree : Quadtree {
     // Resizes Quadtree
     void trim()
     {
-        if(_rootNode.get() == null)
+        if(_rootNode is null)
             return;
 
         // Check if should grow
-        if(_outsideRoot.size() > maxOutsideRoot)
+        if(_outsideRoot.length > maxOutsideRoot)
             expand();
-        else if(_outsideRoot.size() < minOutsideRoot && _rootNode.hasChildren)
+        else if(_outsideRoot.length < minOutsideRoot && _rootNode._hasChildren)
             contract();
     }
 
@@ -77,9 +76,9 @@ private:
         Vector2f averageDir = Vector2f(0.0, 0.0);
 
         foreach(occupant; _outsideRoot)
-            averageDir += vectorNormalize(rectCenter(occupant.getAABB()) - rectCenter(_rootNode.getRegion()));
+            averageDir += vectorNormalize(rectCenter(occupant.getAABB()) - rectCenter(_rootNode.region));
 
-        Vector2f centerOffsetDist = Vector2f(rectHalfDims(_rootNode.getRegion()) / oversizeMultiplier);
+        Vector2f centerOffsetDist = Vector2f(rectHalfDims(_rootNode.region) / oversizeMultiplier);
 
         Vector2f centerOffset = Vector2f((averageDir.x > 0.0 ? 1.0 : -1.0) * centerOffsetDist.x,
                                 (averageDir.y > 0.0 ? 1.0 : -1.0) * centerOffsetDist.y);
@@ -90,7 +89,7 @@ private:
 
         FloatRect newRootAABB = rectFromBounds(Vector2f(0.0, 0.0), centerOffsetDist * 4.0);
 
-        newRootAABB = rectRecenter(newRootAABB, centerOffset + rectCenter(_rootNode.getRegion()));
+        newRootAABB = rectRecenter(newRootAABB, centerOffset + rectCenter(_rootNode.region));
 
         QuadtreeNode newRoot = new QuadtreeNode(newRootAABB,  _rootNode.level + 1, null, this);
 
