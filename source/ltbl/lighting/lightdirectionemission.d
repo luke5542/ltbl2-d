@@ -1,6 +1,6 @@
 module ltbl.lighting.lightdirectionemission;
 
-import ltbl.d;
+import ltbl;
 
 import dsfml.graphics;
 

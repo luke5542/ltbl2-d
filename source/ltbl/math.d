@@ -8,7 +8,7 @@ import std.algorithm;
 import dsfml.system;
 import dsfml.graphics;
 
-import ltbl.d;
+import ltbl;
 
 public immutable RAD_TO_DEG = 57.2957795;
 
@@ -272,4 +272,11 @@ bool rayIntersect(in Vector2f as, in Vector2f ad, in Vector2f bs,
     intersection = as + ad * u;
 
     return true;
+}
+
+auto removeElement(R, N)(R haystack, N needle)
+{
+    import std.algorithm : countUntil, remove;
+    auto index = haystack.countUntil(needle);
+    return (index != -1) ? haystack.remove(index) : haystack;
 }

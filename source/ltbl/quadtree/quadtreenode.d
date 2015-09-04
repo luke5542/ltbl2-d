@@ -1,8 +1,11 @@
 module ltbl.quadtree.quadtreenode;
 
-import ltbl.d;
+import ltbl;
 
 import dsfml.graphics;
+
+import std.container;
+import std.algorithm;
 
 class QuadtreeNode
 {
@@ -20,12 +23,24 @@ class QuadtreeNode
 
     this()
     {
+        _parent = null;
+        _quadtree = null;
         _hasChildren = false;
+        _region = FloatRect.init;
+        _level = int.init;
         _numOccupantsBelow = 0;
     }
 
     this(ref const(FloatRect) region, int level, QuadtreeNode parent, Quadtree quadtree)
     {
+        create(region, level, parent, quadtree);
+    }
+    
+    /++
+     + Rest this node to its initially constructed state.
+     +/
+    void create(ref const(FloatRect) region, int level, QuadtreeNode parent, Quadtree quadtree)
+    {
         _hasChildren = false;
         _region = region;
         _level = level;
@@ -34,7 +49,7 @@ class QuadtreeNode
         _numOccupantsBelow = 0;
     }
 
-    void create(ref const(FloatRect) region, int level, QuadtreeNode parent, Quadtree quadtree)
+    /*void create(ref const(FloatRect) region, int level, QuadtreeNode parent, Quadtree quadtree)
     {
         _hasChildren = false;
 
@@ -42,7 +57,7 @@ class QuadtreeNode
         _level = level;
         _parent = parent;
         _quadtree = quadtree;
-    }
+    }*/
 
     @property const(Quadtree) quadtree()
     {
@@ -64,8 +79,8 @@ class QuadtreeNode
         else
         {
             // Check if we need a new partition
-            if (_occupants.length >= _quadtree._maxNumNodeOccupants
-                && _level < _quadtree._maxLevels)
+            if (_occupants.length >= _quadtree.maxNumNodeOccupants
+                && _level < _quadtree.maxLevels)
             {
                 partition();
 
@@ -107,7 +122,7 @@ class QuadtreeNode
             // If the node has children, add them to the open list
             if (currentNode._hasChildren)
                 for (int i = 0; i < 4; i++)
-                    open.insertBack(currentNode._children[i].get());
+                    open.insertBack(currentNode._children[i]);
         }
     }
 
@@ -130,9 +145,9 @@ class QuadtreeNode
                 _children[i].pruneDeadReferences();
     }*/
 
-private:
+package:
 
-    void getPossibleOccupantPosition(in QuadtreeOccupant oc, out Vector2i point)
+    void getPossibleOccupantPosition(ref QuadtreeOccupant oc, out Vector2i point)
     {
         // Compare the center of the AABB of the occupant to that of this node to determine
         // which child it may (possibly, not certainly) fit in
@@ -146,10 +161,10 @@ private:
     void addToThisLevel(QuadtreeOccupant oc) {
         oc._quadtreeNode = this;
 
-        if (_occupants.find(oc) != _occupants.end())
+        if (_occupants.countUntil(oc) >= 0)
             return;
 
-        _occupants.insert(oc);
+        _occupants ~= oc;
     }
 
     // Returns true if occupant was added to children
@@ -160,7 +175,7 @@ private:
 
         getPossibleOccupantPosition(oc, position);
 
-        QuadtreeNode pChild = _children[position.x + position.y * 2].get();
+        QuadtreeNode pChild = _children[position.x + position.y * 2];
 
         // See if the occupant fits in the child at the selected position
         if (rectContains(pChild._region, oc.getAABB())) {
@@ -175,7 +190,7 @@ private:
 
     void destroyChildren() {
         for (int i = 0; i < 4; i++)
-            _children[i].reset();
+            _children[i] = null;
 
         _hasChildren = false;
     }
@@ -206,7 +221,7 @@ private:
             // If the node has children, add them to the open list
             if (currentNode._hasChildren)
                 for (int i = 0; i < 4; i++)
-                    open.insertBack(currentNode._children[i].get());
+                    open.insertBack(currentNode._children[i]);
         }
     }
 
@@ -232,7 +247,7 @@ private:
                 Vector2f center = rectCenter(childAABB);
                 childAABB = rectFromBounds(center - newHalfDims, center + newHalfDims);
 
-                _children[x + y * 2].reset(new QuadtreeNode(childAABB, nextLowerLevel, this, _quadtree));
+                _children[x + y * 2] = new QuadtreeNode(childAABB, nextLowerLevel, this, _quadtree);
             }
         }
 
@@ -252,9 +267,9 @@ private:
         if (oc is null)
             return;
 
-        if (!_occupants.empty())
+        if (_occupants.length > 0)
             // Remove, may be re-added to this node later
-            _occupants.erase(oc);
+            _occupants.removeElement(oc);
 
         // Propogate upwards, looking for a node that has room (the current one may still have room)
         QuadtreeNode node = this;
@@ -273,10 +288,10 @@ private:
         if (node is null) {
             assert(_quadtree !is null);
 
-            if (_quadtree._outsideRoot.find(oc) != _quadtree._outsideRoot.end())
+            if (_quadtree._outsideRoot.countUntil(oc) >= 0)
                 return;
 
-            _quadtree._outsideRoot.insert(oc);
+            _quadtree._outsideRoot ~= oc;
 
             oc._quadtreeNode = null;
         }
@@ -288,10 +303,10 @@ private:
     }
 
     void remove(QuadtreeOccupant oc) {
-        assert(!_occupants.empty());
+        assert(_occupants.length > 0);
 
         // Remove from node
-        _occupants.erase(oc);
+        _occupants.removeElement(oc);
 
         if (oc is null)
             return;
@@ -302,7 +317,7 @@ private:
         while (node !is null) {
             node._numOccupantsBelow--;
 
-            if (node._numOccupantsBelow >= _quadtree._minNumNodeOccupants) {
+            if (node._numOccupantsBelow >= _quadtree.minNumNodeOccupants) {
                 node.merge();
 
                 break;
@@ -338,7 +353,7 @@ private:
             // If the node has children, add them to the open list
             if (currentNode._hasChildren)
             for (int i = 0; i < 4; i++)
-                open.insertBack(currentNode._children[i].get());
+                open.insertBack(currentNode._children[i]);
         }
     }
 }

@@ -1,14 +1,15 @@
 module ltbl.quadtree.quadtree;
 
-import ltbl.quadtree.quadtreeoccupant;
-import ltbl.quadtree.quadtreenode;
+import ltbl;
 
 import dsfml.graphics;
+
+import std.container;
 
 // Base class for dynamic and static Quadtree types
 class Quadtree
 {
-    protected
+    package
     {
         QuadtreeOccupant[] _outsideRoot;
         QuadtreeNode _rootNode;
@@ -31,7 +32,7 @@ class Quadtree
         oversizeMultiplier = 1.0f;
     }
 
-    @property auto dup() {
+    /*@property auto dup() {
         auto newTree = new Quadtree();
         newTree.minNumNodeOccupants = minNumNodeOccupants;
         newTree.maxNumNodeOccupants = maxNumNodeOccupants;
@@ -41,11 +42,11 @@ class Quadtree
         newTree._outsideRoot = _outsideRoot;
 
         if (_rootNode !is null) {
-            newTree._rootNode.reset(new QuadtreeNode());
+            newTree._rootNode.reset = new QuadtreeNode();
 
-            recursiveCopy(newTree._rootNode.get(), _rootNode.get(), null);
+            recursiveCopy(newTree._rootNode, _rootNode, null);
         }
-    }
+    }*/
 
     abstract void add(QuadtreeOccupant oc);
 
@@ -69,16 +70,16 @@ class Quadtree
         {
             FloatRect r = occupant.getAABB();
 
-            if (oc != null && region.intersects(oc.getAABB()))
+            if (occupant !is null && region.intersects(occupant.getAABB()))
             {
                 // Intersects, add to list
-                result ~= oc;
+                result ~= occupant;
             }
         }
 
         DList!(QuadtreeNode) open;
 
-        open.insertBack(_rootNode.get());
+        open.insertBack(_rootNode);
 
         while (!open.empty())
         {
@@ -90,10 +91,10 @@ class Quadtree
             {
                 foreach(occupant; current._occupants)
                 {
-                    if (oc != null && region.intersects(oc.getAABB()))
+                    if (occupant !is null && region.intersects(occupant.getAABB()))
                     {
                         // Visible, add to list
-                        result.insertBack(oc);
+                        result ~= occupant;
                     }
                 }
 
@@ -102,9 +103,9 @@ class Quadtree
                 {
                     for (int i = 0; i < 4; i++)
                     {
-                        if (current._children[i].getNumOccupantsBelow() != 0)
+                        if (current._children[i].numOccupantsBelow() != 0)
                         {
-                            open.push_back(current._children[i].get());
+                            open.insertBack(current._children[i]);
                         }
                     }
                 }
@@ -117,14 +118,14 @@ class Quadtree
         // Query outside root elements
         foreach(occupant; _outsideRoot)
         {
-            if (oc !is null && oc.getAABB().contains(p))
+            if (occupant !is null && occupant.getAABB().contains(p))
                 // Intersects, add to list
-                result.insertBack(oc);
+                result ~= occupant;
         }
 
         DList!(QuadtreeNode) open;
 
-        open.insertBack(_rootNode.get());
+        open.insertBack(_rootNode);
 
         while (!open.empty())
         {
@@ -134,11 +135,11 @@ class Quadtree
 
             if (current._region.contains(p))
             {
-                foreach(qccupant; current._occupants)
+                foreach(occupant; current._occupants)
                 {
-                    if (oc != null && oc.getAABB().contains(p))
+                    if (occupant !is null && occupant.getAABB().contains(p))
                         // Visible, add to list
-                        result.insertBack(oc);
+                        result ~= occupant;
                 }
 
                 // Add children to open list if they intersect the region
@@ -146,9 +147,9 @@ class Quadtree
                 {
                     for(int i = 0; i < 4; i++)
                     {
-                        if (current._children[i].getNumOccupantsBelow() != 0)
+                        if (current._children[i].numOccupantsBelow() != 0)
                         {
-                            open.insertBack(current._children[i].get());
+                            open.insertBack(current._children[i]);
                         }
                     }
                 }
@@ -156,19 +157,19 @@ class Quadtree
         }
     }
 
-    void queryShape(QuadtreeOccupant[] result, ref const(ConvexShape) shape)
+    void queryShape(QuadtreeOccupant[] result, ref ConvexShape shape)
     {
         // Query outside root elements
         foreach(occupant; _outsideRoot)
         {
-            if (oc != null && shapeIntersection(shapeFromRect(oc.getAABB()), shape))
+            if (occupant !is null && shapeIntersection(shapeFromRect(occupant.getAABB()), shape))
                 // Intersects, add to list
-                result.insertBack(oc);
+                result ~= occupant;
         }
 
         DList!(QuadtreeNode) open;
 
-        open.insertBack(_rootNode.get());
+        open.insertBack(_rootNode);
 
         while (!open.empty())
         {
@@ -179,11 +180,11 @@ class Quadtree
             if (shapeIntersection(shapeFromRect(current._region), shape))
             {
                 foreach(occupant; current._occupants) {
-                    ConvexShape r = shapeFromRect(oc.getAABB());
+                    ConvexShape r = shapeFromRect(occupant.getAABB());
 
-                    if (oc != null && shapeIntersection(shapeFromRect(oc.getAABB()), shape))
+                    if (occupant !is null && shapeIntersection(shapeFromRect(occupant.getAABB()), shape))
                         // Visible, add to list
-                        result.insertBack(oc);
+                        result ~= occupant;
                 }
 
                 // Add children to open list if they intersect the region
@@ -191,9 +192,9 @@ class Quadtree
                 {
                     for (int i = 0; i < 4; i++)
                     {
-                        if (current._children[i].getNumOccupantsBelow() != 0)
+                        if (current._children[i].numOccupantsBelow() != 0)
                         {
-                            open.insertBack(current._children[i].get());
+                            open.insertBack(current._children[i]);
                         }
                     }
                 }
@@ -225,9 +226,9 @@ protected:
         if (thisNode._hasChildren)
         {
             for (int i = 0; i < 4; i++) {
-                thisNode._children[i].reset(new QuadtreeNode());
+                thisNode._children[i] = new QuadtreeNode();
 
-                recursiveCopy(thisNode._children[i].get(), otherNode._children[i].get(), thisNode);
+                recursiveCopy(thisNode._children[i], otherNode._children[i], thisNode);
             }
         }
     }

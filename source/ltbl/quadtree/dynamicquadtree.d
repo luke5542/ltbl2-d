@@ -1,6 +1,6 @@
 module ltbl.quadtree.dynamicquadtree;
 
-import ltbl.d;
+import ltbl;
 
 import dsfml.graphics;
 
@@ -43,7 +43,7 @@ class DynamicQuadtree : Quadtree {
 
     void clear()
     {
-        _rootNode.reset();
+        _rootNode = null;
     }
 
     @property bool created() const
@@ -53,6 +53,7 @@ class DynamicQuadtree : Quadtree {
 
     @property const(FloatRect) rootRegion() const
     {
+        assert(created());
         return _rootNode.region;
     }
 
@@ -91,7 +92,7 @@ private:
 
         newRootAABB = rectRecenter(newRootAABB, centerOffset + rectCenter(_rootNode.region));
 
-        QuadtreeNode newRoot = new QuadtreeNode(newRootAABB,  _rootNode.level + 1, null, this);
+        QuadtreeNode newRoot = new QuadtreeNode(newRootAABB,  _rootNode._level + 1, null, this);
 
         // ----------------------- Manual Children Creation for New Root -------------------------
 
@@ -103,7 +104,7 @@ private:
         for(int x = 0; x < 2; x++) {
             for(int y = 0; y < 2; y++) {
                 if(x == rX && y == rY) {
-                    newRoot.children[x + y * 2].reset(_rootNode.release());
+                    newRoot._children[x + y * 2] = _rootNode;
                 } else {
                     Vector2f offset = Vector2f(x * halfRegionDims.x, y * halfRegionDims.y);
 
@@ -117,18 +118,17 @@ private:
 
                     childAABB = rectRecenter(childAABB, center);
 
-                    newRoot.children[x + y * 2].reset(new QuadtreeNode(childAABB, _rootNode.level, newRoot, this));
+                    newRoot._children[x + y * 2] = new QuadtreeNode(childAABB, _rootNode._level, newRoot, this);
                 }
             }
         }
 
-        newRoot.hasChildren = true;
-        newRoot.numOccupantsBelow = _rootNode.numOccupantsBelow;
-        _rootNode.parent = newRoot;
+        newRoot._hasChildren = true;
+        newRoot._numOccupantsBelow = _rootNode._numOccupantsBelow;
+        _rootNode._parent = newRoot;
 
         // Transfer ownership
-        _rootNode.release();
-        _rootNode.reset(newRoot);
+        _rootNode = newRoot;
 
         // ----------------------- Try to Add Previously Outside Root -------------------------
 
@@ -141,14 +141,14 @@ private:
     }
 
     void contract() {
-        assert(_rootNode.hasChildren);
+        assert(_rootNode._hasChildren);
 
         // Find child with the most occupants and shrink to that
         int maxIndex = 0;
 
         for (int i = 1; i < 4; i++) {
-            if (_rootNode.children[i].getNumOccupantsBelow() >
-                _rootNode.children[maxIndex].getNumOccupantsBelow())
+            if (_rootNode._children[i].numOccupantsBelow() >
+                _rootNode._children[maxIndex].numOccupantsBelow())
                 maxIndex = i;
         }
 
@@ -157,7 +157,7 @@ private:
             if (i == maxIndex)
                 continue;
 
-            _rootNode.children[i].removeForDeletion(_outsideRoot);
+            _rootNode._children[i].removeForDeletion(_outsideRoot);
         }
 
         QuadtreeNode newRoot = _rootNode._children[maxIndex];
@@ -167,8 +167,8 @@ private:
 
         _rootNode.removeForDeletion(_outsideRoot);
 
-        _rootNode.reset(newRoot);
+        _rootNode = newRoot;
 
-        _rootNode.parent = null;
+        _rootNode._parent = null;
     }
 }

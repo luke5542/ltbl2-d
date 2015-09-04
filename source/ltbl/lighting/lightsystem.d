@@ -1,6 +1,6 @@
 module ltbl.lighting.lightsystem;
 
-import ltbl.d;
+import ltbl;
 
 import dsfml.graphics;
 

@@ -1,7 +1,6 @@
 module ltbl.quadtree.staticquadtree;
 
-import ltbl.quadtree.quadtree;
-import ltbl.quadtree.quadtreeoccupant;
+import ltbl;
 
 import dsfml.graphics;
 
@@ -14,12 +13,12 @@ class StaticQuadtree : Quadtree
 
     this(ref const(FloatRect) rootRegion)
     {
-        _rootNode.reset(new QuadtreeNode(rootRegion, 0, null, this));
+        _rootNode = new QuadtreeNode(rootRegion, 0, null, this);
     }
 
     void create(ref const(FloatRect) rootRegion)
     {
-        _rootNode.reset(new QuadtreeNode(rootRegion, 0, null, this));
+        _rootNode = new QuadtreeNode(rootRegion, 0, null, this);
     }
 
     // Inherited from Quadtree
@@ -30,20 +29,20 @@ class StaticQuadtree : Quadtree
         setQuadtree(oc);
 
         // If the occupant fits in the root node
-        if (rectContains(_rootNode.getRegion(), oc.getAABB()))
+        if (rectContains(_rootNode.region(), oc.getAABB()))
             _rootNode.add(oc);
         else
-            _outsideRoot.insert(oc);
+            _outsideRoot ~= oc;
     }
 
     void clear()
     {
-        _rootNode.reset();
+        _rootNode = null;
     }
 
     @property const(FloatRect) rootRegion() const
     {
-        return _rootNode.getRegion();
+        return _rootNode.region();
     }
 
     @property bool created() const

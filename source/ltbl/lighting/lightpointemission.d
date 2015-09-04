@@ -1,6 +1,6 @@
 module ltbl.lighting.lightpointemission;
 
-import ltbl.d;
+import ltbl;
 
 import dsfml.graphics;
 
